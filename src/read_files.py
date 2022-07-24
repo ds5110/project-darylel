@@ -112,21 +112,22 @@ def main():
     '''
     Main function
     '''
-    educate = ['Educate_Maine_2021_Symposium.txt']
+    educate = ['./data/Maine_Ed_2050/Educate_Maine_2021_Symposium.txt']
     farmers = ['Maine_Farmers_ 012722.txt', 'Maine_Farmers_020122.txt', 'Maine_Farmers_020922.txt']
     kennebec = ['Kennebec_County_Educators.txt', 'Kennebec_County_Community_020122.txt']
     presque_isle = ['University_of_Maine_Presque_Isle_Pre-Service_Teachers_2.txt', 'University_of_Maine_Presque_Isle_Pre-Service_Teachers_1.txt']
     community = ['Community_Caring_Collaborative_1.txt', 'Community_Caring_Collaborative_2.txt']
 
     txtss = [educate, farmers, kennebec, presque_isle, community]
-    #lines = read_file(text)
-    #lines = reformat_text(lines)
+    lines = read_file(educate[0])
+    lines = reformat_text(lines)
+    print(lines)
 
     #print(lines)
 
     
-    for txts, title in zip(txtss, ["educate", "farmers", "kennebec", "presque_isle", "community"]):
-        sub(txts, title)
+    #for txts, title in zip(txtss, ["educate", "farmers", "kennebec", "presque_isle", "community"]):
+        #sub(txts, title)
 
 if __name__ == '__main__':
     main()
