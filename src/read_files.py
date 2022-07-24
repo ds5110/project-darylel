@@ -1,11 +1,11 @@
-from operator import index
 import re
 import time
-from xml.dom import WRONG_DOCUMENT_ERR
 import pandas as pd
+import nltk
 from nltk.corpus import stopwords
-from nltk.stem import PorterStemmer
 import matplotlib.pyplot as plt
+nltk.download('wordnet')
+from nltk.stem import WordNetLemmatizer
 
 def read_file(doc):
     '''
@@ -50,8 +50,8 @@ def create_preprocess(lines):
     # Create set of English stopwords from nltk.corpus
     stops = set(stopwords.words('english'))
 
-    # Initialize Porter Stemmer to stem the word corpus
-    ps = PorterStemmer()
+    # Initialize WordNet Lemmatizer to lemmatize the word corpus
+    wnl = WordNetLemmatizer()
 
     # Parse the document and create a wordlist
     lines_cleaned = []
@@ -66,7 +66,8 @@ def create_preprocess(lines):
         line1 = line[1].split()
         for l in line1:
             if len(l) > 0 and l.lower() not in stops:
-                word_list.append(ps.stem(l))
+                #word_list.append(ps.stem(l))
+                word_list.append(wnl.lemmatize(l).lower())
 
         line[1] = word_list
         lines_cleaned.append(line)
@@ -76,6 +77,11 @@ def create_preprocess(lines):
 def unique_list(words):
     '''
     Take a list of words/tokens and return a list of unique words
+
+    Arguments:
+        words: List of words
+    Returns:
+        unique_list = list of a set of unique words
     '''
     # Create a the list of unique words in the corpus
     unique_list = list(set(words))
@@ -85,6 +91,12 @@ def unique_list(words):
 def freq(unique, words):
     '''
     Create a frequency mapping {word: frequency}
+
+    Arguments:
+        unique: List of unique words in the document(s)
+        words: List of all words in the document(s)
+    Results: 
+        frequency: Dictionary with the unique word as the key and the frequency count as the value
     '''
     # Create word frequency mapping
     frequency = {}
@@ -98,6 +110,11 @@ def freq(unique, words):
 def reformat_text(lines):
     '''
     Remove the formatting from the file to keep answers and questions 'whole'
+
+    Arguments:
+        lines: List of lists with the lines read from the file
+    Returns:
+        x_formatted: Lists of lists where the sublist is made of participant name and question/answer
     '''
     x = []
     x_formatted = []
@@ -160,17 +177,7 @@ def main():
         'Christian Brayd...': 'Cumberland', 'Christian': 'Cumberland', 'Jean': 'York', 'Frank': 'York', 'Lexi': 'unk', 'Logan': 'unk', 'Elena': 'unk', 'Taylor': 'unk', 'Reece': 'unk', 'Caitlyn': 'Hancock',
         'Keana': 'Aroostook', 'Madison': 'Aroostook', 'Twyla': 'Washington'}
 
-    #txtss = [educate, farmers, kennebec, presque_isle, community]
-    #lines = read_file(educate[0])
-    #lines = reformat_text(lines)
-    #print(lines)
-
-    #print(lines)
-
-    
-    #for txts, title in zip(txtss, ["educate", "farmers", "kennebec", "presque_isle", "community"]):
-        #sub(txts, title)
-
+    # Parse all document (change 'all' to one of the cohorts above or perform this on a single document)
     results = []
     for doc in all:
         lines = read_file(doc)
@@ -179,8 +186,20 @@ def main():
         lines = create_preprocess(lines)
         results += lines
 
+    # Get all words in results
+    words = []
     for line in results:
-        print(line)
+        words += line[1]
+
+    # Create a list of unique terms in words
+    vocab = sorted(unique_list(words))
+
+    # Print length of wors and lenght of vocab
+    print(len(words))
+    print(len(vocab))
+
+    # Print frequency dictionary
+    print(freq(vocab, words))
 
 if __name__ == '__main__':
     main()
