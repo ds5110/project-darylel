@@ -1,11 +1,20 @@
+'''
+Gungyeom (James) Kim & Daryle Lamoureux 
+DS5110 Summer 2022
+Final Project
+
+This project consumes text documents from interviews conducted by the Maine Ed Forum.
+It then analyzes and visualizes the data from those files.
+'''
+
+import nltk
+from nltk.stem import WordNetLemmatizer
+from nltk.corpus import stopwords
+nltk.download('wordnet')
 import re
 import time
-import pandas as pd
-import nltk
-from nltk.corpus import stopwords
 import matplotlib.pyplot as plt
-nltk.download('wordnet')
-from nltk.stem import WordNetLemmatizer
+import pandas as pd
 
 def read_file(doc):
     '''
@@ -17,7 +26,7 @@ def read_file(doc):
         lines: A list of each line read from the document
     '''
     # Read file
-    with open('./data/Maine_Ed_2050/' + doc, encoding="utf-8") as f:
+    with open('../data/Maine_Ed_2050/' + doc, encoding="utf-8") as f:
         lines = f.readlines()
 
     return lines
@@ -35,11 +44,9 @@ def enhance_data(lines, participants, doc):
     '''
     x = []
     # Parse the lines list and county data to each sublist
-    for i in range(len(lines)):
-        if lines[i][0] in participants.keys():
-            x.append(lines[i] + [participants[lines[i][0]]] + [doc])
-        else:
-            x.append(lines[i] + ['unk'] + [doc])
+    for value in lines:
+        if value[0] in participants.keys():
+            x.append(value + [participants[value[0]]] + [doc])
 
     return x
 
@@ -119,11 +126,11 @@ def reformat_text(lines):
     x = []
     x_formatted = []
     # If a line starts with a space/spaces, append it to the previous line
-    for i in range(len(lines)):
-        if lines[i][0] != ' ':
-            x.append(re.sub(' {2,}', ' ', lines[i]))
+    for l in lines:
+        if l[0] != ' ':
+            x.append(re.sub(' {2,}', ' ', l))
         else:
-            x[-1] = x[-1].strip() + re.sub(' {2,}', ' ', lines[i])
+            x[-1] = x[-1].strip() + re.sub(' {2,}', ' ', l)
 
     # Split question/answer from speaker and add to the list
     for line in x:
@@ -170,11 +177,14 @@ def main():
     # List of all Maine counties
     counties = ['Androscoggin', 'Aroostook', 'Cumberland', 'Franklin', 'Hancock', 'Kennebec', 'Knox', 'Lincoln', 'Oxford', 'Penobscot', 'Piscataquis', 'Sagadahoc', 'Somerset', 'Waldo', 'Washington', 'York']
     # Dictionary of participants and their counties
-    participants = {'Abby': 'Washington', 'Corey': 'Washington', 'Julie': 'Washington', 'Jane': 'Washington', 'Anna': 'Washington', 'Mandy': 'Washington', 'Dante': 'Washington', 'Charlie': 'Washington',
-        'Jason': 'unk', 'Jennifer': 'unk', 'Nancy': 'unk', 'Heather': 'unk', 'Rob': 'unk', 'Kelsey': 'unk', 'Patty': 'unk', 'Kim': 'unk', 'Shelly': 'unk', 'Katie': 'unk', 'Doris': 'unk', 'Jackie': 'Kennebec',
-        'Faye': 'Kennebec', 'Mark': 'Kennebec', 'Amanda': 'Kennebec', 'Lindsay': 'Kennebec', 'Tanya': 'Kennebec', 'Emmanuel': 'Kennebec', 'Emily': 'Aroostook', 'Donna': 'York', 'Seren': 'Androscoggin',
-        'Steve': 'Androscoggin', 'Nick King': 'Cumberland', 'Nick': 'Cumberland', 'Rhiannon Hampso...': 'Knox', 'Rhiannon': 'Knox', 'Seth Kroeck': 'Cumberland', 'Seth': 'Cumberland', 
-        'Christian Brayd...': 'Cumberland', 'Christian': 'Cumberland', 'Jean': 'York', 'Frank': 'York', 'Lexi': 'unk', 'Logan': 'unk', 'Elena': 'unk', 'Taylor': 'unk', 'Reece': 'unk', 'Caitlyn': 'Hancock',
+    participants = {'Abby': 'Washington', 'Corey': 'Washington', 'Julie': 'Washington', 'Jane': 'Washington', 'Anna': 'Washington',
+        'Mandy': 'Washington', 'Dante': 'Washington', 'Charlie': 'Washington', 'Jason': 'unk', 'Jennifer': 'unk', 'Nancy': 'unk', 
+        'Heather': 'unk', 'Rob': 'unk', 'Kelsey': 'unk', 'Patty': 'unk', 'Kim': 'unk', 'Shelly': 'unk', 'Katie': 'unk', 'Doris': 'unk',
+        'Jackie': 'Kennebec', 'Faye': 'Kennebec', 'Mark': 'Kennebec', 'Amanda': 'Kennebec', 'Lindsay': 'Kennebec', 'Tanya': 'Kennebec',
+        'Emmanuel': 'Kennebec', 'Emily': 'Aroostook', 'Donna': 'York', 'Seren': 'Androscoggin', 'Steve': 'Androscoggin',
+        'Nick King': 'Cumberland', 'Nick': 'Cumberland', 'Rhiannon Hampso...': 'Knox', 'Rhiannon': 'Knox', 'Seth Kroeck': 'Cumberland',
+        'Seth': 'Cumberland', 'Christian Brayd...': 'Cumberland', 'Christian': 'Cumberland', 'Jean': 'York', 'Frank': 'York', 'Lexi': 'unk',
+        'Logan': 'unk', 'Elena': 'unk', 'Taylor': 'unk', 'Reece': 'unk', 'Caitlyn': 'Hancock',
         'Keana': 'Aroostook', 'Madison': 'Aroostook', 'Twyla': 'Washington'}
 
     # Parse all document (change 'all' to one of the cohorts above or perform this on a single document)
@@ -189,17 +199,18 @@ def main():
     # Get all words in results
     words = []
     for line in results:
+        print(line)
         words += line[1]
 
     # Create a list of unique terms in words
     vocab = sorted(unique_list(words))
 
-    # Print length of wors and lenght of vocab
+    # Print length of words and length of vocab
     print(len(words))
     print(len(vocab))
 
     # Print frequency dictionary
-    print(freq(vocab, words))
+    #print(freq(vocab, words))
 
 if __name__ == '__main__':
     main()
