@@ -7,12 +7,12 @@ This project consumes text documents from interviews conducted by the Maine Ed F
 It then analyzes and visualizes the data from those files.
 '''
 
-import nltk
-from nltk.stem import WordNetLemmatizer
-from nltk.corpus import stopwords
-nltk.download('wordnet')
 import re
 import time
+from nltk.corpus import stopwords
+from nltk.stem import WordNetLemmatizer
+import nltk
+nltk.download('wordnet')
 import matplotlib.pyplot as plt
 import pandas as pd
 
