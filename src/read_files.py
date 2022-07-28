@@ -16,6 +16,7 @@ import nltk
 nltk.download('wordnet')
 import matplotlib.pyplot as plt
 import pandas as pd
+from wordcloud import WordCloud
 
 def read_file(doc):
     '''
@@ -59,12 +60,13 @@ def create_preprocess(lines):
     new_stops = ["according", "across", "actual", "actually", "additionally", "afar", "ago", "ah",
         "already", "almost", "along", "also", "although", "always", "among", "apparently", "apart",
         "b", "come", "comes", "coming", "completely", "cough", "could", "easily", "especially",
-        "forth", "get", "gets", "go", "goes", "going", "gosh", "gotten", "h", "hi", "ii", "like",
-        "likes", "lots", "oh", "okay", "oops", "p", "pas", "perhaps", "pop", "pops", "put", "puts",
-        "putting", "quite", "really", "sec", "said", "say", "saying", "says", "see", "seen", "sees",
-        "seem", "seems", "somebody", "specifically", "still", "strongly", "sure", "take", "takes",
-        "today", "told", "totally", "u", "uh", "umf", "unless", "upon", "vo", "went", "whew", "whoa",
-        "would", "wow", "x", "yeah", "yep", "yes", "yet", "z"]
+        "even", "forth", "get", "gets", "getting", "go", "goes", "going", "gosh", "gotten", "h",
+        "hi", "ii", "like", "likes", "lots", "much", "oh", "okay", "oops", "p", "pas", "perhaps",
+        "pop", "pops", "put", "puts", "putting", "quite", "really", "sec", "said", "say", "saying",
+        "says", "see", "seen", "sees", "seem", "seems", "somebody", "specifically", "still",
+        "strongly", "sure", "take", "takes", "thing", "today", "told", "totally", "u", "uh", "umf",
+        "unless", "upon", "vo", "went", "whew", "whoa", "would", "wow", "x", "yeah", "yep", "yes",
+        "yet", "z"]
     stops = stopwords.words('english')
     stops.extend(new_stops)
     stops = set(stops)
@@ -152,6 +154,21 @@ def reformat_text(lines):
 
     return x_formatted
 
+def show_wordcloud(text):
+    '''
+    Create Wordcloud from a text dataframe
+    '''
+
+    words = ' '.join(text)
+
+    # Create and generate a word cloud image:
+    wordcloud = WordCloud(max_words=100).generate(words)
+
+    # Display the generated image:
+    plt.imshow(wordcloud, interpolation='bilinear')
+    plt.axis("off")
+    plt.show()
+
 def sub(txts, title):
     total_lines = []
     for text in txts:
@@ -223,6 +240,8 @@ def main():
 
     # Print frequency dictionary
     print(freq(vocab, words))
+
+    show_wordcloud(words)
 
 if __name__ == '__main__':
     main()
