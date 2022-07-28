@@ -59,14 +59,17 @@ def create_preprocess(lines):
     # Create set of English stopwords from nltk.corpus
     new_stops = ["according", "across", "actual", "actually", "additionally", "afar", "ago", "ah",
         "already", "almost", "along", "also", "although", "always", "among", "apparently", "apart",
-        "b", "come", "comes", "coming", "completely", "cough", "could", "easily", "especially",
-        "even", "forth", "get", "gets", "getting", "go", "goes", "going", "gosh", "gotten", "h",
-        "hi", "ii", "like", "likes", "lots", "much", "oh", "okay", "oops", "p", "pas", "perhaps",
-        "pop", "pops", "put", "puts", "putting", "quite", "really", "sec", "said", "say", "saying",
-        "says", "see", "seen", "sees", "seem", "seems", "somebody", "specifically", "still",
-        "strongly", "sure", "take", "takes", "thing", "today", "told", "totally", "u", "uh", "umf",
-        "unless", "upon", "vo", "went", "whew", "whoa", "would", "wow", "x", "yeah", "yep", "yes",
-        "yet", "z"]
+        "around", "b", "bit", "bring", "brings", "come", "comes", "coming", "completely", "cough",
+        "could", "easily", "especially", "even", "every", "everything", "forth", "get", "gets",
+        "getting", "go", "goes", "going", "gosh", "got", "gotten", "happen", "happens", "h", "hi",
+        "ii", "let", "lets", "like", "likes", "little", "look", "looks", "lot", "lots", "make",
+        "makes", "making", "many", "may", "maybe", "might", "much", "oh", "okay", "oops", "p",
+        "pas", "perhaps", "pop", "pops", "put", "puts", "pretty", "putting", "quite", "really",
+        "sec", "said", "say", "saying", "says", "see", "seen", "sees", "seem", "seems", "somebody",
+        "something", "sort", "sorts", "specifically", "still", "strongly", "stuff", "sure", "take",
+        "takes", "thing", "things", "today", "told", "totally", "u", "uh", "umf", "unless", "upon",
+        "using", "vo", "way", "well", "went", "whew", "whoa", "would", "wow", "x", "yeah", "yep",
+        "yes", "yet", "z"]
     stops = stopwords.words('english')
     stops.extend(new_stops)
     stops = set(stops)
@@ -217,7 +220,7 @@ def main():
 
     # Parse all document (change 'all' to one of the cohorts above or perform this on a single document)
     results = []
-    for doc in all:
+    for doc in community:
         lines = read_file(doc)
         lines = reformat_text(lines)
         lines = enhance_data(lines, participants, doc)
