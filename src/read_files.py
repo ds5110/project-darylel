@@ -10,11 +10,13 @@ It then analyzes and visualizes the data from those files.
 import re
 import time
 from nltk.corpus import stopwords
+from nltk.stem import PorterStemmer
 from nltk.stem import WordNetLemmatizer
 import nltk
 nltk.download('wordnet')
 import matplotlib.pyplot as plt
 import pandas as pd
+from wordcloud import WordCloud
 
 def read_file(doc):
     '''
@@ -55,10 +57,23 @@ def create_preprocess(lines):
     Create and preprocess a word list from file content
     '''
     # Create set of English stopwords from nltk.corpus
-    stops = set(stopwords.words('english'))
+    new_stops = ["according", "across", "actual", "actually", "additionally", "afar", "ago", "ah",
+        "already", "almost", "along", "also", "although", "always", "among", "apparently", "apart",
+        "b", "come", "comes", "coming", "completely", "cough", "could", "easily", "especially",
+        "even", "forth", "get", "gets", "getting", "go", "goes", "going", "gosh", "gotten", "h",
+        "hi", "ii", "like", "likes", "lots", "much", "oh", "okay", "oops", "p", "pas", "perhaps",
+        "pop", "pops", "put", "puts", "putting", "quite", "really", "sec", "said", "say", "saying",
+        "says", "see", "seen", "sees", "seem", "seems", "somebody", "specifically", "still",
+        "strongly", "sure", "take", "takes", "thing", "today", "told", "totally", "u", "uh", "umf",
+        "unless", "upon", "vo", "went", "whew", "whoa", "would", "wow", "x", "yeah", "yep", "yes",
+        "yet", "z"]
+    stops = stopwords.words('english')
+    stops.extend(new_stops)
+    stops = set(stops)
 
     # Initialize WordNet Lemmatizer to lemmatize the word corpus
     wnl = WordNetLemmatizer()
+    #ps = PorterStemmer()
 
     # Parse the document and create a wordlist
     lines_cleaned = []
@@ -72,7 +87,7 @@ def create_preprocess(lines):
         # Add each word/token to the word list
         line1 = line[1].split()
         for l in line1:
-            if len(l) > 0 and l.lower() not in stops:
+            if len(l) > 0 and (l.isnumeric() == False) and l.lower() not in stops:
                 #word_list.append(ps.stem(l))
                 word_list.append(wnl.lemmatize(l).lower())
 
@@ -139,6 +154,21 @@ def reformat_text(lines):
 
     return x_formatted
 
+def show_wordcloud(text):
+    '''
+    Create Wordcloud from a text dataframe
+    '''
+
+    words = ' '.join(text)
+
+    # Create and generate a word cloud image:
+    wordcloud = WordCloud(max_words=100).generate(words)
+
+    # Display the generated image:
+    plt.imshow(wordcloud, interpolation='bilinear')
+    plt.axis("off")
+    plt.show()
+
 def sub(txts, title):
     total_lines = []
     for text in txts:
@@ -159,8 +189,6 @@ def sub(txts, title):
     # t = time.time()
     # # Write word frequencies to file
     # df.sort_values('frequency', ascending=False).to_csv('file_' + title + '.csv', sep=',')
-    
-
 
 def main():
     '''
@@ -215,10 +243,12 @@ def main():
     # Print length of words and length of vocab
     print(len(words))
     print(len(vocab))
+    #print(vocab)
 
     # Print frequency dictionary
-    #print(freq(vocab, words))
-    return df
+    print(freq(vocab, words))
+
+    show_wordcloud(words)
 
 if __name__ == '__main__':
     main()
