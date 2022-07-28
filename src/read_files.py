@@ -224,10 +224,17 @@ def main():
         lines = create_preprocess(lines)
         results += lines
 
+    # Make the dataframe
+    d = {'name':[line[0] for line in results], 
+        'text':[str(line[1]) for line in results], 
+        'county':[line[2] for line in results], 
+        'doc':[line[3] for line in results]}
+    df = pd.DataFrame(data = d)
+
     # Get all words in results
     words = []
     for line in results:
-        print(line)
+        # print(line)
         words += line[1]
 
     # Create a list of unique terms in words
