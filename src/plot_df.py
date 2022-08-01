@@ -1,8 +1,7 @@
 import read_files 
-from sklearn.feature_extraction.text import CountVectorizer, TfidfTransformer, TfidfVectorizer
+from sklearn.feature_extraction.text import CountVectorizer, TfidfVectorizer
 import numpy as np
 import matplotlib.pyplot as plt
-import sys
 
 def main():
     df = read_files.main()
@@ -11,7 +10,7 @@ def main():
 
     # parse command line argument
     tfVectorizer = CountVectorizer()
-    tfidfVectorizer = TfidfVectorizer()
+    tfidfVectorizer = TfidfVectorizer(sublinear_tf=True)
 
     # sparse_matrix & feature_names defined here, and used below
     tf_sparse_matrix = tfVectorizer.fit_transform(df['text'])
