@@ -205,6 +205,9 @@ def main():
     community = ['Community_Caring_Collaborative_1.txt', 'Community_Caring_Collaborative_2.txt']
     all = ['Educate_Maine_2021_Symposium.txt', 'Maine_Farmers_ 012722.txt', 'Maine_Farmers_020122.txt', 'Maine_Farmers_020922.txt', 'Kennebec_County_Educators.txt', 'Kennebec_County_Community_020122.txt', 'University_of_Maine_Presque_Isle_Pre-Service_Teachers_2.txt', 'University_of_Maine_Presque_Isle_Pre-Service_Teachers_1.txt', 'Community_Caring_Collaborative_1.txt', 'Community_Caring_Collaborative_2.txt']
 
+    # Group as educators / community / youth
+    # Industry Farmers, etc.
+
     # List of all Maine counties
     counties = ['Androscoggin', 'Aroostook', 'Cumberland', 'Franklin', 'Hancock', 'Kennebec', 'Knox', 'Lincoln', 'Oxford', 'Penobscot', 'Piscataquis', 'Sagadahoc', 'Somerset', 'Waldo', 'Washington', 'York']
     # Dictionary of participants and their counties
@@ -220,13 +223,15 @@ def main():
 
     # Parse all document (change 'all' to one of the cohorts above or perform this on a single document)
     results = []
-    for doc in community:
+    for doc in educate:
         lines = read_file(doc)
         lines = reformat_text(lines)
-        lines = enhance_data(lines, participants, doc)
-        lines = create_preprocess(lines)
-        results += lines
+        #lines = enhance_data(lines, participants, doc)
+        #lines = create_preprocess(lines)
+        #results += lines
 
+    print(lines)
+    '''
     # Make the dataframe
     d = {'name':[line[0] for line in results], 
         'text':[str(line[1]) for line in results], 
@@ -249,9 +254,10 @@ def main():
     #print(vocab)
 
     # Print frequency dictionary
-    print(freq(vocab, words))
+    #print(freq(vocab, words))
 
     show_wordcloud(words)
+'''
 
 if __name__ == '__main__':
     main()
