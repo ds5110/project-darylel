@@ -1,9 +1,9 @@
 import read_files 
-from sklearn.feature_extraction.text import CountVectorizer, TfidfTransformer, TfidfVectorizer
-import numpy as np
+from sklearn.feature_extraction.text import CountVectorizer, TfidfVectorizer
 import matplotlib.pyplot as plt
-import sys
 from wordcloud import WordCloud
+import numpy as np
+from PIL import Image
 
 def main():
     df = read_files.main()
@@ -20,17 +20,22 @@ def main():
     tf_feature_names = tfVectorizer.get_feature_names_out() 
     tfidf_feature_names = tfidfVectorizer.get_feature_names_out() 
 
+    ### map mask
+    androscogin_ori = np.array(Image.open("../figs/androscogin_county.png"))
+    androscogin_mask = androscogin_ori.copy()
+    androscogin_mask[androscogin_mask.sum(axis=2) == 0] = 255
+
 
     # Get highest tf words in the first book
-    for i in range(0,8):
+    for i in range(0,1):
         tf = tf_sparse_matrix[i,:].toarray()[0]
         tfidf = tfidf_sparse_matrix[i,:].toarray()[0]
 
         tf_dict = dict(zip(tf_feature_names, tf))
         tfidf_dict = dict(zip(tfidf_feature_names, tfidf))
 
-        tf_wordcloud = WordCloud(max_words=100).generate_from_frequencies(tf_dict)
-        tfidf_wordcloud = WordCloud(max_words=100).generate_from_frequencies(tfidf_dict)
+        tf_wordcloud = WordCloud(max_words=100, mask=androscogin_mask, contour_width=3, contour_color='firebrick', background_color="white").generate_from_frequencies(tf_dict)
+        tfidf_wordcloud = WordCloud(max_words=100, mask=androscogin_mask, contour_width=3, contour_color='firebrick', background_color="white").generate_from_frequencies(tfidf_dict)
 
         fig, ax = plt.subplots(1,2,figsize=(24,5))
         ax[0].imshow(tf_wordcloud, interpolation='bilinear')
@@ -39,7 +44,7 @@ def main():
 
         ax[1].imshow(tfidf_wordcloud, interpolation='bilinear')
         ax[1].set_title('TF-IDF of ' + df['county'][i] + " county")
-        ax[0].axis("on")
+        ax[1].axis("off")
     plt.show()
 
 
