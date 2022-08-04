@@ -10,6 +10,7 @@ import os
 from dotenv import load_dotenv
 import json
 import re
+import time
 import requests
 from requests.structures import CaseInsensitiveDict
 from nltk.corpus import stopwords
@@ -87,7 +88,7 @@ def get_conversations(ids):
     '''
     # Initialize conversations list
     conversations = list()
-    ids = [1722]
+    #ids = [1722]
 
     for x in ids:
         # Make the API call for the conversation with the given conversation ID
@@ -108,7 +109,20 @@ def get_conversations(ids):
                 sentence = ' '.join(temp)
                 sentence = preprocess(sentence)
                 conversation.append(sentence)
-                conversation.append(resp.get('title'))
+                session = resp.get('title')
+                if 'educator' in session.lower():
+                    conversation.append('educator')
+                elif 'teacher' in session.lower():
+                    conversation.append('educator')
+                elif 'youth' in session.lower():
+                    conversation.append('youth')
+                elif 'community' in session.lower():
+                    conversation.append('community')
+                elif 'industry' in session.lower():
+                    conversation.append('industry')
+                else:
+                    conversation.append('unknown')
+                conversation.append(session)
                 conversation.append(x)
                 conversation.append(resp.get('location').get('name'))
                 conversations.append(conversation)
@@ -187,10 +201,11 @@ def main():
     all_conversations = get_conversations(conversation_ids)
 
     # Create a dataframe from the conversations list
-    columns = ['speaker','facilitator', 'sentence', 'title', 'conversation_id', 'county']
+    columns = ['speaker','facilitator', 'sentence', 'group', 'title', 'conversation_id', 'county']
     df = create_dataframe(all_conversations, columns)
 
     print(df.head())
+    print(df.shape)
 
 if __name__ == "__main__":
     main()
