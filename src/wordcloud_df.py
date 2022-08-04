@@ -1,7 +1,9 @@
 import read_files 
 from sklearn.feature_extraction.text import CountVectorizer, TfidfVectorizer
-import numpy as np
 import matplotlib.pyplot as plt
+from wordcloud import WordCloud
+import numpy as np
+from PIL import Image
 
 def main():
     df = read_files.main()
@@ -18,34 +20,37 @@ def main():
     tf_feature_names = tfVectorizer.get_feature_names_out() 
     tfidf_feature_names = tfidfVectorizer.get_feature_names_out() 
 
+    ### map mask
+    androscogin_ori = np.array(Image.open("../figs/androscogin_county.png"))
+    androscogin_mask = androscogin_ori.copy()
+    androscogin_mask[androscogin_mask.sum(axis=2) == 0] = 255
+
+
     # Get highest tf words in the first book
-    for i in range(0,8):
+    for i in range(0,1):
         tf = tf_sparse_matrix[i,:].toarray()[0]
         tfidf = tfidf_sparse_matrix[i,:].toarray()[0]
 
+        tf_dict = dict(zip(tf_feature_names, tf))
+        tfidf_dict = dict(zip(tfidf_feature_names, tfidf))
 
-        # Sort tfidf from large to small (default sort is increasing)
-        tf_sorted_indices = np.argsort(-tf) # these are the indices of the sort
-        sorted_tf = [tf[j] for j in tf_sorted_indices] # this is the sorted array
-        tf_sorted_features = [tf_feature_names[j] for j in tf_sorted_indices] # features sorted by tfidf
-
-        tfidf_sorted_indices = np.argsort(-tfidf) # these are the indices of the sort
-        sorted_tfidf = [tfidf[j] for j in tfidf_sorted_indices] # this is the sorted array
-        tfidf_sorted_features = [tfidf_feature_names[j] for j in tfidf_sorted_indices] # features sorted by tfidf
+        tf_wordcloud = WordCloud(max_words=100, mask=androscogin_mask, contour_width=3, contour_color='firebrick', background_color="white").generate_from_frequencies(tf_dict)
+        tfidf_wordcloud = WordCloud(max_words=100, mask=androscogin_mask, contour_width=3, contour_color='firebrick', background_color="white").generate_from_frequencies(tfidf_dict)
 
         fig, ax = plt.subplots(1,2,figsize=(24,5))
-        
-        ax[0].bar(tf_sorted_features[:10], sorted_tf[:10], 
-                width=1, alpha=.5, edgecolor='black')
+        ax[0].imshow(tf_wordcloud, interpolation='bilinear')
         ax[0].set_title('TF of ' + df['county'][i] + " county")
-        ax[0].set_xticklabels(tf_sorted_features[:10],rotation=45)
+        ax[0].axis("off")
 
-        ax[1].bar(tfidf_sorted_features[:10], sorted_tfidf[:10], 
-                width=1, alpha=.5, edgecolor='black')
+        ax[1].imshow(tfidf_wordcloud, interpolation='bilinear')
         ax[1].set_title('TF-IDF of ' + df['county'][i] + " county")
-        ax[1].set_xticklabels(tfidf_sorted_features[:10],rotation=45)
-
+        ax[1].axis("off")
     plt.show()
+
+
+
+    
+    
 
 
 if __name__ == '__main__':

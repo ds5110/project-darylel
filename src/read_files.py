@@ -223,7 +223,7 @@ def main():
 
     # Parse all document (change 'all' to one of the cohorts above or perform this on a single document)
     results = []
-    for doc in educate:
+    for doc in all:
         lines = read_file(doc)
         lines = reformat_text(lines)
         #lines = enhance_data(lines, participants, doc)
@@ -248,16 +248,18 @@ def main():
     # Create a list of unique terms in words
     vocab = sorted(unique_list(words))
 
-    # Print length of words and length of vocab
-    print(len(words))
-    print(len(vocab))
-    #print(vocab)
+    # # Print length of words and length of vocab
+    # print(len(words))
+    # print(len(vocab))
+    # #print(vocab)
 
-    # Print frequency dictionary
-    #print(freq(vocab, words))
 
-    show_wordcloud(words)
-'''
+    # # Print frequency dictionary
+    # print(freq(vocab, words))
+
+    # show_wordcloud(words)
+
+    return df
 
 if __name__ == '__main__':
     main()
