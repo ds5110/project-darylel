@@ -1,6 +1,9 @@
 # DS5110 Final Project: Education ACTION Forum of Maine
 
 * Stakeholder: Jennifer Chace (Executive Director)
+* Contributors: James Kim and Daryle Lamoureux
+
+## Overview
 * Story: What are differences by county and economic region -- statewide
 * Data:
   * 15 focus group conversations -- 75-90 minutes each
