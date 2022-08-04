@@ -10,6 +10,7 @@ import os
 from dotenv import load_dotenv
 import json
 import re
+import time
 import requests
 from requests.structures import CaseInsensitiveDict
 from nltk.corpus import stopwords
@@ -87,7 +88,7 @@ def get_conversations(ids):
     '''
     # Initialize conversations list
     conversations = list()
-    ids = [1722]
+    #ids = [1722]
 
     for x in ids:
         # Make the API call for the conversation with the given conversation ID
@@ -112,6 +113,9 @@ def get_conversations(ids):
                 conversation.append(x)
                 conversation.append(resp.get('location').get('name'))
                 conversations.append(conversation)
+
+        # Wait before making the next call to prevent rate limits in the API
+        time.sleep(10)
 
     return conversations
 
@@ -191,6 +195,7 @@ def main():
     df = create_dataframe(all_conversations, columns)
 
     print(df.head())
+    print(df.shape)
 
 if __name__ == "__main__":
     main()
