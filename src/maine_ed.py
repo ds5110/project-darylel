@@ -8,13 +8,10 @@ It then analyzes and visualizes the data from those files.
 '''
 import os
 from dotenv import load_dotenv
-import json
 import re
-import time
 import requests
 from requests.structures import CaseInsensitiveDict
 from nltk.corpus import stopwords
-from nltk.stem import PorterStemmer
 from nltk.stem import WordNetLemmatizer
 import nltk
 nltk.download('wordnet')
@@ -88,7 +85,6 @@ def get_conversations(ids):
     '''
     # Initialize conversations list
     conversations = list()
-    #ids = [1722]
 
     for x in ids:
         # Make the API call for the conversation with the given conversation ID
@@ -109,6 +105,7 @@ def get_conversations(ids):
                 sentence = ' '.join(temp)
                 sentence = preprocess(sentence)
                 conversation.append(sentence)
+                # Assign the appropriate group to each conversations
                 session = resp.get('title')
                 if 'educator' in session.lower():
                     conversation.append('educator')
@@ -158,7 +155,6 @@ def preprocess(line):
 
     # Initialize WordNet Lemmatizer to lemmatize the word corpus
     wnl = WordNetLemmatizer()
-    #ps = PorterStemmer()
 
     # Parse the document and create a wordlist
     word_list = []
@@ -171,7 +167,6 @@ def preprocess(line):
     line = line.split()
     for l in line:
         if len(l) > 0 and (l.isnumeric() == False) and l.lower() not in stops:
-            #word_list.append(ps.stem(l))
             word_list.append(wnl.lemmatize(l).lower())
 
     return word_list
