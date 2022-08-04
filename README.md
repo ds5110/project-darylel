@@ -18,6 +18,7 @@ This project analyzes the conversations that have taken place to date by accessi
 
 Simple bar chart of frequency of 5 most occurring words in each text file.
 
+
 ## Technical Implementation
 Data Source: API provided by Maine Ed Forum to access data in real-time
 
