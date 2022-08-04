@@ -1,4 +1,4 @@
-# ds5110_final_project
+# DS5110 Final Project: Education ACTION Forum of Maine
 
 * Stakeholder: Jennifer Chace (Executive Director)
 * Story: What are differences by county and economic region -- statewide
