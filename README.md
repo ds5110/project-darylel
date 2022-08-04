@@ -4,16 +4,12 @@
 * Contributors: James Kim and Daryle Lamoureux (The Roux Institute at Northeastern University)
 
 ## Overview
-* Story: What are differences by county and economic region -- statewide
-* Data:
-  * 15 focus group conversations -- 75-90 minutes each
-    * 2-6 people in each conversation
-  * All focus group conversations -- can look at word frequency
-  * [maine_ed](maine_ed)
-* EDA: one or more figures sufficient to assess project feasibility
-* Project plan (plan.md): milestones/timeline/roles and responsibilities
+The Education ACTION Forum of Maine (Maine Ed Forum) has been conducting interviews across the state among youth, educators, community members and representatives from the state's industries. The goal of these conversations is to find insight and trends by groups, by county, etc. to understand better the concerns of the community in regards to education and education-related topics.
 
-## Checklist
+## Methodology
+This project analyzes the conversations that have taken place to date by accessing these conversations using the Maine Ed Forum's API. The analysis performed data analysis to identify key terms and trends within each conversation, whether by county, group or otherwise. This was primarly done using traditional word count as well as TF/IDF to see if there are differences in the most common words as well as the last common words encountered in these conversations.
+
+## Results
 ### EDA: one or more figures sufficient to assess project feasibility
 
 ![fig1](/figs/Figure_1.png)
