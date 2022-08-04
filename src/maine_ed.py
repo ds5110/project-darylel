@@ -109,13 +109,23 @@ def get_conversations(ids):
                 sentence = ' '.join(temp)
                 sentence = preprocess(sentence)
                 conversation.append(sentence)
-                conversation.append(resp.get('title'))
+                session = resp.get('title')
+                if 'educator' in session.lower():
+                    conversation.append('educator')
+                elif 'teacher' in session.lower():
+                    conversation.append('educator')
+                elif 'youth' in session.lower():
+                    conversation.append('youth')
+                elif 'community' in session.lower():
+                    conversation.append('community')
+                elif 'industry' in session.lower():
+                    conversation.append('industry')
+                else:
+                    conversation.append('unknown')
+                conversation.append(session)
                 conversation.append(x)
                 conversation.append(resp.get('location').get('name'))
                 conversations.append(conversation)
-
-        # Wait before making the next call to prevent rate limits in the API
-        time.sleep(10)
 
     return conversations
 
@@ -191,7 +201,7 @@ def main():
     all_conversations = get_conversations(conversation_ids)
 
     # Create a dataframe from the conversations list
-    columns = ['speaker','facilitator', 'sentence', 'title', 'conversation_id', 'county']
+    columns = ['speaker','facilitator', 'sentence', 'group', 'title', 'conversation_id', 'county']
     df = create_dataframe(all_conversations, columns)
 
     print(df.head())
