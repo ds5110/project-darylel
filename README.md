@@ -19,3 +19,9 @@ This project analyzes the conversations that have taken place to date by accessi
 Simple bar chart of frequency of 5 most occurring words in each text file.
 
 ### Project plan ([plan.md](https://github.com/darylel/ds5110_final_project/blob/james/plan.md)): milestones/timeline/roles and responsibilities
+
+## Technical Implementation
+Data Source: API provided by Maine Ed Forum to access data in real-time
+
+Code base: Python using the following libraries: os, dotenv, json, re, requests, nltk, pandas, matplotlib, wordcloud, sklearn
+
