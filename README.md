@@ -1,7 +1,7 @@
 # DS5110 Final Project: Education ACTION Forum of Maine
 
 * Stakeholder: Jennifer Chace (Executive Director)
-* Contributors: James Kim and Daryle Lamoureux
+* Contributors: James Kim and Daryle Lamoureux (The Roux Institute at Northeastern University)
 
 ## Overview
 * Story: What are differences by county and economic region -- statewide
