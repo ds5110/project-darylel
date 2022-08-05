@@ -7,6 +7,7 @@ This project consumes text documents from interviews conducted by the Maine Ed F
 It then analyzes and visualizes the data from those files.
 '''
 import os
+import sys
 from dotenv import load_dotenv
 import re
 import requests
@@ -185,22 +186,36 @@ def create_dataframe(data, columns):
 
     return df
 
-def main():
+def main(sys_argv):
     '''
     Main code to get conversations from Maine Ed Forum using the API
     '''
-    # Get all conversation IDs
-    conversation_ids = get_convo_ids()
+    # Enable CLI commands to get data
+    if len(sys_argv) >= 2:
 
-    # Get all conversations included in the conversation_ids list
-    all_conversations = get_conversations(conversation_ids)
+        # Get all conversation IDs
+        conversation_ids = get_convo_ids()
 
-    # Create a dataframe from the conversations list
-    columns = ['speaker','facilitator', 'sentence', 'group', 'title', 'conversation_id', 'county']
-    df = create_dataframe(all_conversations, columns)
+        # Get all conversations included in the conversation_ids list
+        all_conversations = get_conversations(conversation_ids)
 
-    print(df.head())
-    print(df.shape)
+        # Create a dataframe from the conversations list
+        columns = ['speaker','facilitator', 'sentence', 'group', 'title', 'conversation_id', 'county']
+        df = create_dataframe(all_conversations, columns)
+
+        print(df.head())
+        print(df.shape)
+
+        if sys_argv[1] == 'counties':
+            pass
+        elif sys_argv[1] == 'groups':
+            pass
+        elif sys_argv[1] == 'state':
+            pass
+        else:
+            print('\nERROR: Use the command -- python3 maine_ed.py <counties | groups | state>')
+    else:
+        print('\nERROR: Use the command -- python3 maine_ed.py <counties | groups | state>')
 
 if __name__ == "__main__":
-    main()
+    main(sys.argv)
