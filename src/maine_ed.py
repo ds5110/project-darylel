@@ -18,6 +18,12 @@ import nltk
 nltk.download('wordnet')
 import pandas as pd
 load_dotenv()
+import read_files 
+from sklearn.feature_extraction.text import CountVectorizer, TfidfVectorizer
+import matplotlib.pyplot as plt
+from wordcloud import WordCloud
+import numpy as np
+from PIL import Image
 
 def make_call(content, params={}):
     '''
@@ -87,9 +93,9 @@ def get_conversations(ids):
     # Initialize conversations list
     conversations = list()
 
-    for x in ids:
+    for conversation_id in ids:
         # Make the API call for the conversation with the given conversation ID
-        resp = make_call('conversations/' + str(x), {})
+        resp = make_call('conversations/' + str(conversation_id), {})
 
         if resp is not None:
             for s in resp.get('snippets'):
@@ -99,13 +105,17 @@ def get_conversations(ids):
                 # Recreate each conversation and add to the conversations list
                 conversation.append(s['speaker_name'])
                 conversation.append(s['is_facilitator'])
+
                 # Consolidate all the words
                 temp = list()
+                # Create a list of tags per conversation
+                tags = list()
                 for word in s['words']:
                     temp.append(word[0])
                 sentence = ' '.join(temp)
                 sentence = preprocess(sentence)
                 conversation.append(sentence)
+
                 # Assign the appropriate group to each conversations
                 session = resp.get('title')
                 if 'educator' in session.lower():
@@ -120,9 +130,17 @@ def get_conversations(ids):
                     conversation.append('industry')
                 else:
                     conversation.append('unknown')
+                # Make a list of all the associated tags
+                highlights = resp.get('highlights')
+                if highlights is not None:
+                    for highlight in highlights:
+                        for tag in highlight['tags']:
+                            tags.append(tag)
+                conversation.append(tags)
                 conversation.append(session)
-                conversation.append(x)
+                conversation.append(conversation_id)
                 conversation.append(resp.get('location').get('name'))
+                conversation.append(resp.get('participant_count'))
                 conversations.append(conversation)
 
     return conversations
@@ -183,8 +201,59 @@ def create_dataframe(data, columns):
         df: Pandas dataframe with corresponding column headers
     '''
     df = pd.DataFrame(data, columns=columns)
-
+    
     return df
+
+def create_wordcloud(df, category):
+    '''
+    Plot and show the wordcloud from a Pandas dataframe
+
+    Inputs:
+        df: Pandas dataframe
+        category: "state", "androscogin", "aroostook", "cumberland", "franklin", 
+                "hancock", "kennebec", "knox", "lincoln", "penobscot", "piscataquis", 
+                "sagadahoc", "somerset", "waldo", "washington", "york"
+    Returns:
+        null
+    '''
+    # parse command line argument
+    tfVectorizer = CountVectorizer()
+    tfidfVectorizer = TfidfVectorizer(sublinear_tf=True)
+
+    # sparse_matrix & feature_names defined here, and used below
+    
+    tf_sparse_matrix = tfVectorizer.fit_transform(df['sentence'])
+    tfidf_sparse_matrix = tfidfVectorizer.fit_transform(df['sentence'])
+    tf_feature_names = tfVectorizer.get_feature_names_out() 
+    tfidf_feature_names = tfidfVectorizer.get_feature_names_out() 
+
+    ### map mask
+    img = np.array(Image.open("../figs/" + category + ".png"))
+    img_mask = img.copy()
+    img_mask[img_mask.sum(axis=2) == 0] = 255
+
+    counties = {"aroostook": 1, "kennebec": 2, "cumberland":3, "knox":4, "lincoln":5, "somerset":8, "washington":10, "york": 11}
+    
+    tf = tf_sparse_matrix[counties[category],:].toarray()[0]
+    tfidf = tfidf_sparse_matrix[counties[category],:].toarray()[0]
+
+    tf_dict = dict(zip(tf_feature_names, tf))
+    tfidf_dict = dict(zip(tfidf_feature_names, tfidf))
+
+    tf_wordcloud = WordCloud(max_words=100, mask=img_mask, contour_width=3, contour_color='firebrick', background_color="white").generate_from_frequencies(tf_dict)
+    tfidf_wordcloud = WordCloud(max_words=100, mask=img_mask, contour_width=3, contour_color='firebrick', background_color="white").generate_from_frequencies(tfidf_dict)
+
+    fig, ax = plt.subplots(1,2,figsize=(24,5))
+    ax[0].imshow(tf_wordcloud, interpolation='bilinear')
+    ax[0].set_title('TF of ' + category)
+    ax[0].axis("off")
+
+    ax[1].imshow(tfidf_wordcloud, interpolation='bilinear')
+    ax[1].set_title('TF-IDF of ' + category)
+    ax[1].axis("off")
+
+    plt.show()
+
 
 def main(sys_argv):
     '''
@@ -200,20 +269,47 @@ def main(sys_argv):
         all_conversations = get_conversations(conversation_ids)
 
         # Create a dataframe from the conversations list
-        columns = ['speaker','facilitator', 'sentence', 'group', 'title', 'conversation_id', 'county']
+        columns = ['speaker','facilitator', 'sentence', 'group', 'tags', 'title', 'conversation_id', 'county','participant_count']
         df = create_dataframe(all_conversations, columns)
 
-        print(df.head())
-        print(df.shape)
+        # Removing facilitator
+        df = df[df.facilitator != True]
 
+        # Coverting type of each cell in df['sentence'] from list to str
+        # To apply, fit function later
+        df['sentence'] = df['sentence'].apply(lambda x: ' '.join(x))
+
+        # replacing subordianted county
+        df = df.replace(['Augusta, Kennebec County, Maine', 'Presque Isle, Aroostook County, Maine'],['Kennebec County, Maine','Aroostook County, Maine'])
+
+        # Processing dataframe according to sys_argv[1]
         if sys_argv[1] == 'counties':
-            pass
+            df = df.groupby('county').agg({'sentence': lambda x: ' '.join(x)}).reset_index()
         elif sys_argv[1] == 'groups':
-            pass
+            df = df.groupby('group').agg({'sentence': lambda x: ' '.join(x)}).reset_index()
         elif sys_argv[1] == 'state':
+            pass
+        elif sys_argv[1] == 'tags':
             pass
         else:
             print('\nERROR: Use the command -- python3 maine_ed.py <counties | groups | state>')
+        
+        
+
+
+        # testing
+        print("processed df")
+        print(df)
+        print(df.shape)
+
+        # Action according to sys_argv[2]
+        if sys_argv[3] == "bar":
+            pass
+        elif sys_argv[3] == "cloud":
+            create_wordcloud(df, sys_argv[2]) # only work with countines at this moment have to implement for state
+        else:
+            pass
+
     else:
         print('\nERROR: Use the command -- python3 maine_ed.py <counties | groups | state>')
 
