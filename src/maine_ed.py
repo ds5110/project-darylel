@@ -222,6 +222,8 @@ def main(sys_argv):
             pass
         elif sys_argv[1] == 'state':
             pass
+        elif sys_argv[1] == 'tags':
+            pass
         else:
             print('\nERROR: Use the command -- python3 maine_ed.py <counties | groups | state>')
     else:
