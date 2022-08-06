@@ -123,6 +123,7 @@ def get_conversations(ids):
                 conversation.append(session)
                 conversation.append(x)
                 conversation.append(resp.get('location').get('name'))
+                conversation.append(resp.get('participant_count'))
                 conversations.append(conversation)
 
     return conversations
@@ -200,7 +201,7 @@ def main(sys_argv):
         all_conversations = get_conversations(conversation_ids)
 
         # Create a dataframe from the conversations list
-        columns = ['speaker','facilitator', 'sentence', 'group', 'title', 'conversation_id', 'county']
+        columns = ['speaker','facilitator', 'sentence', 'group', 'title', 'conversation_id', 'county', 'participant_count']
         df = create_dataframe(all_conversations, columns)
 
         print(df.head())
