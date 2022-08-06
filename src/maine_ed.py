@@ -87,9 +87,9 @@ def get_conversations(ids):
     # Initialize conversations list
     conversations = list()
 
-    for x in ids:
+    for conversation_id in ids:
         # Make the API call for the conversation with the given conversation ID
-        resp = make_call('conversations/' + str(x), {})
+        resp = make_call('conversations/' + str(conversation_id), {})
 
         if resp is not None:
             for s in resp.get('snippets'):
@@ -101,6 +101,8 @@ def get_conversations(ids):
                 conversation.append(s['is_facilitator'])
                 # Consolidate all the words
                 temp = list()
+                # Create a list of tags per conversation
+                tags = list()
                 for word in s['words']:
                     temp.append(word[0])
                 sentence = ' '.join(temp)
@@ -120,8 +122,15 @@ def get_conversations(ids):
                     conversation.append('industry')
                 else:
                     conversation.append('unknown')
+                # Make a list of all the associated tags
+                highlights = resp.get('highlights')
+                if highlights is not None:
+                    for highlight in highlights:
+                        for tag in highlight['tags']:
+                            tags.append(tag)
+                conversation.append(tags)
                 conversation.append(session)
-                conversation.append(x)
+                conversation.append(conversation_id)
                 conversation.append(resp.get('location').get('name'))
                 conversation.append(resp.get('participant_count'))
                 conversations.append(conversation)
@@ -201,7 +210,7 @@ def main(sys_argv):
         all_conversations = get_conversations(conversation_ids)
 
         # Create a dataframe from the conversations list
-        columns = ['speaker','facilitator', 'sentence', 'group', 'title', 'conversation_id', 'county', 'participant_count']
+        columns = ['speaker','facilitator', 'sentence', 'group', 'tags', 'title', 'conversation_id', 'county', 'participant_count']
         df = create_dataframe(all_conversations, columns)
 
         print(df.head())
