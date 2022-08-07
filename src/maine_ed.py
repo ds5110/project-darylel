@@ -232,10 +232,16 @@ def create_wordcloud(df, category):
     img_mask = img.copy()
     img_mask[img_mask.sum(axis=2) == 0] = 255
 
-    counties = {"aroostook": 1, "kennebec": 2, "cumberland":3, "knox":4, "lincoln":5, "somerset":8, "washington":10, "york": 11}
-    
-    tf = tf_sparse_matrix[counties[category],:].toarray()[0]
-    tfidf = tfidf_sparse_matrix[counties[category],:].toarray()[0]
+    if(category=='maine'):
+        print(tf_feature_names)
+        tf = tf_sparse_matrix[0,:].toarray()[0]
+        tfidf = tfidf_sparse_matrix[0,:].toarray()[0]
+    else:
+        # current available category
+        counties = {"aroostook": 0, "kennebec": 2, "cumberland":1, "knox":3, "lincoln":4, "somerset":6, "washington":8, "york": 9}
+        
+        tf = tf_sparse_matrix[counties[category],:].toarray()[0]
+        tfidf = tfidf_sparse_matrix[counties[category],:].toarray()[0]
 
     tf_dict = dict(zip(tf_feature_names, tf))
     tfidf_dict = dict(zip(tfidf_feature_names, tfidf))
@@ -253,7 +259,6 @@ def create_wordcloud(df, category):
     ax[1].axis("off")
 
     plt.show()
-
 
 def main(sys_argv):
     '''
@@ -288,7 +293,7 @@ def main(sys_argv):
         elif sys_argv[1] == 'groups':
             df = df.groupby('group').agg({'sentence': lambda x: ' '.join(x)}).reset_index()
         elif sys_argv[1] == 'state':
-            pass
+            df = pd.DataFrame({'sentence': [' '.join(df['sentence'].tolist())]})
         elif sys_argv[1] == 'tags':
             pass
         else:
