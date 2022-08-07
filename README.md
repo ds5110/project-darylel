@@ -22,5 +22,10 @@ Simple bar chart of frequency of 5 most occurring words in each text file.
 ## Technical Implementation
 Data Source: API provided by Maine Ed Forum to access data in real-time
 
-Code base: Python using the following libraries: os, dotenv, json, re, requests, nltk, pandas, matplotlib, wordcloud, sklearn
+Code base: Python using the following libraries: os, dotenv, re, requests, nltk, pandas, matplotlib, wordcloud, sklearn
 
+Launching the program:
+* python3 maine_ed.py counties
+* python3 maine_ed.py state
+* python3 maine_ed.py groups
+* python3 maine_ed.py tags
