@@ -16,6 +16,8 @@ from nltk.corpus import stopwords
 from nltk.stem import WordNetLemmatizer
 import nltk
 nltk.download('wordnet')
+nltk.download('stopwords')
+nltk.download('omw-1.4')
 import pandas as pd
 load_dotenv()
 import read_files 
@@ -24,6 +26,9 @@ import matplotlib.pyplot as plt
 from wordcloud import WordCloud
 import numpy as np
 from PIL import Image
+import geopandas as gpd
+import adjustText as aT
+
 
 def make_call(content, params={}):
     '''
@@ -113,7 +118,7 @@ def get_conversations(ids):
                 for word in s['words']:
                     temp.append(word[0])
                 sentence = ' '.join(temp)
-                sentence = preprocess(sentence)
+                sentence = preprocess(sentence, s['speaker_name'])
                 conversation.append(sentence)
 
                 # Assign the appropriate group to each conversations
@@ -145,12 +150,13 @@ def get_conversations(ids):
 
     return conversations
 
-def preprocess(line):
+def preprocess(line, extra_stopwords):
     '''
     Create and preprocess a word list from file content
 
     Inputs:
         line: Sentence (string) to be preprocessed
+        extra_stopwords: extra stopwords provided, e.g. speaker's name
     Returns:
         word_list: List of preprocessed words from the sentence
     '''
@@ -169,6 +175,10 @@ def preprocess(line):
         "using", "vo", "way", "well", "went", "whew", "whoa", "would", "wow", "x", "yeah", "yep",
         "yes", "yet", "z"]
     stops = stopwords.words('english')
+    
+    # Adding speaker's name
+    if(len(extra_stopwords)>0):
+        stops.append(extra_stopwords)
     stops.extend(new_stops)
     stops = set(stops)
 
@@ -204,13 +214,14 @@ def create_dataframe(data, columns):
     
     return df
 
-def create_wordcloud(df, category):
+def create_plot(df, style, category):
     '''
     Plot and show the wordcloud from a Pandas dataframe
 
     Inputs:
         df: Pandas dataframe
-        category: "state", "androscogin", "aroostook", "cumberland", "franklin", 
+        type: bar, cloud
+        category: "maine", "counties", "androscogin", "aroostook", "cumberland", "franklin", 
                 "hancock", "kennebec", "knox", "lincoln", "penobscot", "piscataquis", 
                 "sagadahoc", "somerset", "waldo", "washington", "york"
     Returns:
@@ -221,39 +232,114 @@ def create_wordcloud(df, category):
     tfidfVectorizer = TfidfVectorizer(sublinear_tf=True)
 
     # sparse_matrix & feature_names defined here, and used below
-    
     tf_sparse_matrix = tfVectorizer.fit_transform(df['sentence'])
     tfidf_sparse_matrix = tfidfVectorizer.fit_transform(df['sentence'])
     tf_feature_names = tfVectorizer.get_feature_names_out() 
     tfidf_feature_names = tfidfVectorizer.get_feature_names_out() 
 
-    ### map mask
-    img = np.array(Image.open("../figs/" + category + ".png"))
-    img_mask = img.copy()
-    img_mask[img_mask.sum(axis=2) == 0] = 255
+    # current available category
+    countiesDict = {"aroostook": 0, "cumberland":1, "kennebec": 2,  "knox":3, "lincoln":4, "somerset":6, "washington":8, "york": 9}
+    if(category=='maine'):
+        print(tf_feature_names)
+        tf = tf_sparse_matrix[0,:].toarray()[0]
+        tfidf = tfidf_sparse_matrix[0,:].toarray()[0]
+    elif(category=='counties'):
+        for county in countiesDict:
+            create_plot(df, style, county)
+    elif(category in countiesDict):
+        tf = tf_sparse_matrix[countiesDict[category],:].toarray()[0]
+        tfidf = tfidf_sparse_matrix[countiesDict[category],:].toarray()[0]
 
-    counties = {"aroostook": 1, "kennebec": 2, "cumberland":3, "knox":4, "lincoln":5, "somerset":8, "washington":10, "york": 11}
-    
-    tf = tf_sparse_matrix[counties[category],:].toarray()[0]
-    tfidf = tfidf_sparse_matrix[counties[category],:].toarray()[0]
+    if(category!='counties'):
+        if(style == 'cloud'):
+            ### map mask
+            img = np.array(Image.open("../figs/" + category + ".png"))
+            img_mask = img.copy()
+            img_mask[img_mask.sum(axis=2) == 0] = 255
 
-    tf_dict = dict(zip(tf_feature_names, tf))
-    tfidf_dict = dict(zip(tfidf_feature_names, tfidf))
+            tf_dict = dict(zip(tf_feature_names, tf))
+            tfidf_dict = dict(zip(tfidf_feature_names, tfidf))
 
-    tf_wordcloud = WordCloud(max_words=100, mask=img_mask, contour_width=3, contour_color='firebrick', background_color="white").generate_from_frequencies(tf_dict)
-    tfidf_wordcloud = WordCloud(max_words=100, mask=img_mask, contour_width=3, contour_color='firebrick', background_color="white").generate_from_frequencies(tfidf_dict)
+            tf_wordcloud = WordCloud(max_words=100, mask=img_mask, contour_width=3, contour_color='firebrick', background_color="white").generate_from_frequencies(tf_dict)
+            tfidf_wordcloud = WordCloud(max_words=100, mask=img_mask, contour_width=3, contour_color='firebrick', background_color="white").generate_from_frequencies(tfidf_dict)
 
-    fig, ax = plt.subplots(1,2,figsize=(24,5))
-    ax[0].imshow(tf_wordcloud, interpolation='bilinear')
-    ax[0].set_title('TF of ' + category)
-    ax[0].axis("off")
+            fig, ax = plt.subplots(1,2,figsize=(24,5))
+            ax[0].imshow(tf_wordcloud, interpolation='bilinear')
+            ax[0].set_title('TF of ' + category)
+            ax[0].axis("off")
 
-    ax[1].imshow(tfidf_wordcloud, interpolation='bilinear')
-    ax[1].set_title('TF-IDF of ' + category)
-    ax[1].axis("off")
+            ax[1].imshow(tfidf_wordcloud, interpolation='bilinear')
+            ax[1].set_title('TF-IDF of ' + category)
+            ax[1].axis("off")
+        elif(style=='bar'):
+            # Sort tfidf from large to small (default sort is increasing)
+            tf_sorted_indices = np.argsort(-tf) # these are the indices of the sort
+            sorted_tf = [tf[j] for j in tf_sorted_indices] # this is the sorted array
+            tf_sorted_features = [tf_feature_names[j] for j in tf_sorted_indices] # features sorted by tfidf
 
+            tfidf_sorted_indices = np.argsort(-tfidf) # these are the indices of the sort
+            sorted_tfidf = [tfidf[j] for j in tfidf_sorted_indices] # this is the sorted array
+            tfidf_sorted_features = [tfidf_feature_names[j] for j in tfidf_sorted_indices] # features sorted by tfidf
+
+            fig, ax = plt.subplots(1,2,figsize=(24,5))
+            
+            ax[0].bar(tf_sorted_features[:10], sorted_tf[:10], 
+                    width=1, alpha=.5, edgecolor='black')
+            ax[0].set_title('TF of ' + category)
+            ax[0].set_xticklabels(tf_sorted_features[:10],rotation=45)
+
+            ax[1].bar(tfidf_sorted_features[:10], sorted_tfidf[:10], 
+                    width=1, alpha=.5, edgecolor='black')
+            ax[1].set_title('TF-IDF of ' + category)
+            ax[1].set_xticklabels(tfidf_sorted_features[:10],rotation=45)
+        plt.show()
+
+def create_choro(df):
+    '''
+
+    '''
+    # Within each county how many conversations have happened there and how many people total
+    fp = "../ref/Maine_County_Boundary_Polygons_Dissolved_Feature.zip"
+    map_df = gpd.read_file(fp)
+
+    merged = map_df.set_index('COUNTY').join(df.set_index('county'))
+    merged['title'] = merged['title'].fillna(0)
+
+    # Here we find the center points, copy our original df to a new df, and then set 
+    # the geometry column to the newly created center points column 
+    # (because a GeoPandas df can only have one geometry column)
+    merged["center"] = merged["geometry"].centroid
+    merged_points = merged.copy()
+    merged_points.set_geometry("center", inplace = True)
+
+    # set a variable that will call whatever column we want to visualise on the map
+    variable = 'title'
+    # set the range for the choropleth
+    vmin, vmax = 0, 10
+    # create figure and axes for Matplotlib
+    fig, ax = plt.subplots(1, figsize=(5, 12))
+    # create map
+    merged.plot(column=variable, cmap='Blues', linewidth=0.8, ax=ax, edgecolor='0.8', label='')
+
+    # Label county on map
+    texts = []
+    for x, y, label in zip(merged_points.geometry.x, merged_points.geometry.y, merged_points.index):
+        texts.append(plt.text(x-len(label)/25, y, label, fontsize = 8))
+    aT.adjust_text(texts, force_points=0.3, force_text=0.8, expand_points=(1,1), expand_text=(1,1))
+
+    # remove the axis
+    ax.axis('off')
+    # add a title
+    ax.set_title('Number of Conversation by county', fontdict={'fontsize': '25', 'fontweight' : '3'})
+    # create an annotation for the data source
+    # ax.annotate('Ed Maine Forum',xy=(0.1, .08),  xycoords='figure fraction', horizontalalignment='left', verticalalignment='top', fontsize=12, color='#555555')
+    # Create colorbar as a legend
+    sm = plt.cm.ScalarMappable(cmap='Blues', norm=plt.Normalize(vmin=vmin, vmax=vmax))
+    # empty array for the data range
+    sm._A = []
+    # add the colorbar to the figure
+    cbar = fig.colorbar(sm)
     plt.show()
-
 
 def main(sys_argv):
     '''
@@ -282,20 +368,35 @@ def main(sys_argv):
         # replacing subordianted county
         df = df.replace(['Augusta, Kennebec County, Maine', 'Presque Isle, Aroostook County, Maine'],['Kennebec County, Maine','Aroostook County, Maine'])
 
+
+        countiesList = ["androscogin", "aroostook", "cumberland", "franklin", 
+                "hancock", "kennebec", "knox", "lincoln", "penobscot", "piscataquis", 
+                "sagadahoc", "somerset", "waldo", "washington", "york"]
+        groupsList = []
+
         # Processing dataframe according to sys_argv[1]
-        if sys_argv[1] == 'counties':
+        if sys_argv[1] == 'counties' or sys_argv[1] in countiesList:
             df = df.groupby('county').agg({'sentence': lambda x: ' '.join(x)}).reset_index()
-        elif sys_argv[1] == 'groups':
+        elif sys_argv[1] == 'groups'or sys_argv[1] in groupsList:
             df = df.groupby('group').agg({'sentence': lambda x: ' '.join(x)}).reset_index()
-        elif sys_argv[1] == 'state':
-            pass
+        elif sys_argv[1] == 'maine':
+            df = pd.DataFrame({'sentence': [' '.join(df['sentence'].tolist())]})
         elif sys_argv[1] == 'tags':
             pass
+        elif sys_argv[1] == 'map':
+            df = df.groupby('county').agg({'title': pd.Series.nunique}).reset_index()
+            df.at[0,'county'] = "Aroostook"
+            df.at[1,'county'] = "Cumberland"
+            df.at[2,'county'] = "Kennebec"
+            df.at[3,'county'] = "Knox"
+            df.at[4,'county'] = "Lincoln"
+            df.at[6,'county'] = "Somerset"
+            df.at[8,'county'] = "Washington"
+            df.at[9,'county'] = "York"
+            create_choro(df)
         else:
             print('\nERROR: Use the command -- python3 maine_ed.py <counties | groups | state>')
         
-        
-
 
         # testing
         print("processed df")
@@ -303,15 +404,8 @@ def main(sys_argv):
         print(df.shape)
 
         # Action according to sys_argv[2]
-        if sys_argv[3] == "bar":
-            pass
-        elif sys_argv[3] == "cloud":
-            create_wordcloud(df, sys_argv[2]) # only work with countines at this moment have to implement for state
-        else:
-            pass
-
-    else:
-        print('\nERROR: Use the command -- python3 maine_ed.py <counties | groups | state>')
+        if (sys_argv[1] != 'map'):
+            create_plot(df, sys_argv[2], sys_argv[1])
 
 if __name__ == "__main__":
     main(sys.argv)
