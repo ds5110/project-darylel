@@ -26,8 +26,10 @@ import matplotlib.pyplot as plt
 from wordcloud import WordCloud
 import numpy as np
 from PIL import Image
-import geopandas as gpd
-import adjustText as aT
+
+### for choropleth map
+# import geopandas as gpd
+# import adjustText as aT
 
 
 def make_call(content, params={}):
@@ -294,10 +296,18 @@ def create_plot(df, style, category):
             ax[1].set_xticklabels(tfidf_sorted_features[:10],rotation=45)
         plt.show()
 
+### Require geopandas installed
+'''
 def create_choro(df):
-    '''
-
-    '''
+'''
+'''
+    Plot choropleth map categorized by counties associated with given Pandas data frame
+    Input:
+        df: Pandas data frame, e.g. data frame with features, county, participant number and number of conversation
+    Return:
+        None
+'''
+''' 
     # Within each county how many conversations have happened there and how many people total
     fp = "../ref/Maine_County_Boundary_Polygons_Dissolved_Feature.zip"
     map_df = gpd.read_file(fp)
@@ -340,42 +350,73 @@ def create_choro(df):
     # add the colorbar to the figure
     cbar = fig.colorbar(sm)
     plt.show()
+'''
 
 def main(sys_argv):
     '''
     Main code to get conversations from Maine Ed Forum using the API
     '''
+    # Get all conversation IDs
+    conversation_ids = get_convo_ids()
+
+    # Get all conversations included in the conversation_ids list
+    all_conversations = get_conversations(conversation_ids)
+
+    # Create a dataframe from the conversations list
+    columns = ['speaker','facilitator', 'sentence', 'group', 'tags', 'title', 'conversation_id', 'county','participant_count']
+    df = create_dataframe(all_conversations, columns)
+
+    # Removing facilitator
+    df = df[df.facilitator != True]
+
+    # Coverting type of each cell in df['sentence'] from list to str
+    # To apply, fit function later
+    df['sentence'] = df['sentence'].apply(lambda x: ' '.join(x))
+
+    # replacing subordianted county
+    df = df.replace(['Augusta, Kennebec County, Maine', 'Presque Isle, Aroostook County, Maine'],['Kennebec County, Maine','Aroostook County, Maine'])
+
+    
     # Enable CLI commands to get data
-    if len(sys_argv) >= 2:
-
-        # Get all conversation IDs
-        conversation_ids = get_convo_ids()
-
-        # Get all conversations included in the conversation_ids list
-        all_conversations = get_conversations(conversation_ids)
-
-        # Create a dataframe from the conversations list
-        columns = ['speaker','facilitator', 'sentence', 'group', 'tags', 'title', 'conversation_id', 'county','participant_count']
-        df = create_dataframe(all_conversations, columns)
-
-        # Removing facilitator
-        df = df[df.facilitator != True]
-
-        # Coverting type of each cell in df['sentence'] from list to str
-        # To apply, fit function later
-        df['sentence'] = df['sentence'].apply(lambda x: ' '.join(x))
-
-        # replacing subordianted county
-        df = df.replace(['Augusta, Kennebec County, Maine', 'Presque Isle, Aroostook County, Maine'],['Kennebec County, Maine','Aroostook County, Maine'])
-
-
+    if (len(sys_argv) == 1):
+        # df = df.groupby('county').agg({'title': pd.Series.nunique}).reset_index()
+        dfgb = df.groupby(['county'])
+        df1 = dfgb.agg({'title': pd.Series.nunique})
+        df2 = dfgb.agg(lambda x: x.drop_duplicates('title', keep='first').participant_count.sum())
+        df = pd.concat([df1, df2['participant_count']],1)
+        
+        # testing
+        print("""\n############################################
+# THE NUMBER OF CONVERSATIONS HAPPENED AND #
+# THE NUMBER OF PARTICIPANT INVOLVED TOTAL #
+# WITHIN EACH COUNTY                       #
+############################################""")
+        print(df)
+    
+    elif(len(sys_argv)>=2):
         countiesList = ["androscogin", "aroostook", "cumberland", "franklin", 
                 "hancock", "kennebec", "knox", "lincoln", "penobscot", "piscataquis", 
                 "sagadahoc", "somerset", "waldo", "washington", "york"]
         groupsList = []
 
         # Processing dataframe according to sys_argv[1]
-        if sys_argv[1] == 'counties' or sys_argv[1] in countiesList:
+        if (sys_argv[1] == 'help'):
+            print("""
+            You can get bar chart or wordcloud of important word within categories using data by Ed Maine Forums from LVN API
+            $python3 maine_ed.py
+            : print help\n
+            $python3 maine_ed.py
+            : print out the number of conversations happened and the number of participant involved total within each county\n
+            $python3 maine_ed.py <counties | groups | tags | maine |  name of county | name of group> <bar | cloud>
+            : counties: plot <bar | cloud> for every county in Maine if it exist in the dataframe
+            : groups: not implemented yet, (plot <bar | cloud> for every group)
+            : tags: not implemented yet
+            : maine: plot <bar | cloud> of most frequent word from every conversation
+            : name of county: plot <bar | cloud> for specified county if it exist in the dataframe
+            : name of group: not implemented yet, (plot <bar | cloud> for specified group)
+            """)
+            return
+        elif sys_argv[1] == 'counties' or sys_argv[1] in countiesList:
             df = df.groupby('county').agg({'sentence': lambda x: ' '.join(x)}).reset_index()
         elif sys_argv[1] == 'groups'or sys_argv[1] in groupsList:
             df = df.groupby('group').agg({'sentence': lambda x: ' '.join(x)}).reset_index()
@@ -383,29 +424,28 @@ def main(sys_argv):
             df = pd.DataFrame({'sentence': [' '.join(df['sentence'].tolist())]})
         elif sys_argv[1] == 'tags':
             pass
-        elif sys_argv[1] == 'map':
-            df = df.groupby('county').agg({'title': pd.Series.nunique}).reset_index()
-            df.at[0,'county'] = "Aroostook"
-            df.at[1,'county'] = "Cumberland"
-            df.at[2,'county'] = "Kennebec"
-            df.at[3,'county'] = "Knox"
-            df.at[4,'county'] = "Lincoln"
-            df.at[6,'county'] = "Somerset"
-            df.at[8,'county'] = "Washington"
-            df.at[9,'county'] = "York"
-            create_choro(df)
         else:
-            print('\nERROR: Use the command -- python3 maine_ed.py <counties | groups | state>')
+            print('''\nERROR: FLAG NOT FOUND
+            Use the command 
+            $python3 maine_ed.py <counties | groups | tags | maine |  name of county | name of group> <bar | cloud>
+            ''')
         
-
         # testing
         print("processed df")
         print(df)
         print(df.shape)
 
         # Action according to sys_argv[2]
-        if (sys_argv[1] != 'map'):
+        if ((len(sys_argv) > 2) and (sys_argv[2] in ['bar','cloud'])):
             create_plot(df, sys_argv[2], sys_argv[1])
+        else:
+            print('''\nERROR: MISSING FLAG
+            Need to provide <bar | cloud>. Use the command
+            $python3 maine_ed.py <counties | groups | tags | maine |  name of county | name of group> <bar | cloud>''')    
+    else:
+        print('''\nERROR: TOO MANY FLAG
+        Use the command
+        $python3 maine_ed.py <counties | groups | tags | maine |  name of county | name of group> <bar | cloud>''')
 
 if __name__ == "__main__":
     main(sys.argv)
