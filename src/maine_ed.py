@@ -27,11 +27,6 @@ from wordcloud import WordCloud
 import numpy as np
 from PIL import Image
 
-### for choropleth map
-# import geopandas as gpd
-# import adjustText as aT
-
-
 def make_call(content, params={}):
     '''
     Reusable function to make API calls
@@ -120,7 +115,7 @@ def get_conversations(ids):
                 for word in s['words']:
                     temp.append(word[0])
                 sentence = ' '.join(temp)
-                sentence = preprocess(sentence, s['speaker_name'])
+                sentence = preprocess(sentence, s['speaker_name'].lower())
                 conversation.append(sentence)
 
                 # Assign the appropriate group to each conversations
@@ -164,18 +159,22 @@ def preprocess(line, extra_stopwords):
     '''
     # Create set of English stopwords from nltk.corpus
     new_stops = ["according", "across", "actual", "actually", "additionally", "afar", "ago", "ah",
-        "already", "almost", "along", "also", "although", "always", "among", "apparently", "apart",
-        "around", "b", "bit", "bring", "brings", "come", "comes", "coming", "completely", "cough",
-        "could", "easily", "especially", "even", "every", "everything", "forth", "get", "gets",
-        "getting", "go", "goes", "going", "gosh", "got", "gotten", "happen", "happens", "h", "hi",
-        "ii", "let", "lets", "like", "likes", "little", "look", "looks", "lot", "lots", "make",
-        "makes", "making", "many", "may", "maybe", "might", "much", "oh", "okay", "oops", "p",
-        "pas", "perhaps", "pop", "pops", "put", "puts", "pretty", "putting", "quite", "really",
-        "sec", "said", "say", "saying", "says", "see", "seen", "sees", "seem", "seems", "somebody",
-        "something", "sort", "sorts", "specifically", "still", "strongly", "stuff", "sure", "take",
-        "takes", "thing", "things", "today", "told", "totally", "u", "uh", "umf", "unless", "upon",
-        "using", "vo", "way", "well", "went", "whew", "whoa", "would", "wow", "x", "yeah", "yep",
-        "yes", "yet", "z"]
+        "aj", "allie", "allison", "almost", "along", "already", "also", "although", "always", "among",
+        "amy", "anna", "annie", "apparently", "apart", "around", "b", "bit", "bob", "brian", "bring",
+        "brings", "charlie", "cindi", "colby", "come", "comes", "coming", "completely", "corey",
+        "cough", "could", "da", "debbie", "deidre", "dick", "easily", "emmanuel", "especially", "even",
+        "every", "everything", "finn", "forth", "frank", "get", "gets", "getting", "go", "goes",
+        "going", "gosh", "got", "gotten", "h", "happen", "happens", "helga", "hi", "ii", "jackie",
+        "jana", "janna", "jean", "jen", "jenny", "jerry", "joe", "john", "jolene", "judith", "julia", "kaitlin", "katelyn",
+        "kendrick", "kianna", "kristen", "leanne", "let", "lets", "lexie", "like", "likes", "lindsay",
+        "little", "logan", "look", "looks", "lot", "lots", "luke", "make", "makes", "making", "malin",
+        "mandy", "many", "matt", "may", "maybe", "might", "much", "nicole", "nina", "oh", "okay", "oops",
+        "p", "pas", "perhaps", "pete", "pop", "pops", "put", "puts", "pretty", "putting", "quite", "really",
+        "rodney", "said", "sally", "say", "saying", "says", "sec", "see", "seen", "sees", "seem", "seems",
+        "shalomi", "shelly", "sherry", "somebody", "something", "sort", "sorts", "specifically", "still", "strongly",
+        "stuff", "sure", "take", "takes", "tammy", "taylor", "thing", "things", "today", "told", "totally",
+        "twyla", "u", "uh", "umf", "unless", "upon", "using", "vo", "way", "well", "went", "whew", "whoa",
+        "would", "wow", "x", "yeah", "yep", "yes", "yet", "z"]
     stops = stopwords.words('english')
     
     # Adding speaker's name
@@ -295,62 +294,6 @@ def create_plot(df, style, category):
             ax[1].set_title('TF-IDF of ' + category)
             ax[1].set_xticklabels(tfidf_sorted_features[:10],rotation=45)
         plt.show()
-
-### Require geopandas installed
-'''
-def create_choro(df):
-'''
-'''
-    Plot choropleth map categorized by counties associated with given Pandas data frame
-    Input:
-        df: Pandas data frame, e.g. data frame with features, county, participant number and number of conversation
-    Return:
-        None
-'''
-''' 
-    # Within each county how many conversations have happened there and how many people total
-    fp = "../ref/Maine_County_Boundary_Polygons_Dissolved_Feature.zip"
-    map_df = gpd.read_file(fp)
-
-    merged = map_df.set_index('COUNTY').join(df.set_index('county'))
-    merged['title'] = merged['title'].fillna(0)
-
-    # Here we find the center points, copy our original df to a new df, and then set 
-    # the geometry column to the newly created center points column 
-    # (because a GeoPandas df can only have one geometry column)
-    merged["center"] = merged["geometry"].centroid
-    merged_points = merged.copy()
-    merged_points.set_geometry("center", inplace = True)
-
-    # set a variable that will call whatever column we want to visualise on the map
-    variable = 'title'
-    # set the range for the choropleth
-    vmin, vmax = 0, 10
-    # create figure and axes for Matplotlib
-    fig, ax = plt.subplots(1, figsize=(5, 12))
-    # create map
-    merged.plot(column=variable, cmap='Blues', linewidth=0.8, ax=ax, edgecolor='0.8', label='')
-
-    # Label county on map
-    texts = []
-    for x, y, label in zip(merged_points.geometry.x, merged_points.geometry.y, merged_points.index):
-        texts.append(plt.text(x-len(label)/25, y, label, fontsize = 8))
-    aT.adjust_text(texts, force_points=0.3, force_text=0.8, expand_points=(1,1), expand_text=(1,1))
-
-    # remove the axis
-    ax.axis('off')
-    # add a title
-    ax.set_title('Number of Conversation by county', fontdict={'fontsize': '25', 'fontweight' : '3'})
-    # create an annotation for the data source
-    # ax.annotate('Ed Maine Forum',xy=(0.1, .08),  xycoords='figure fraction', horizontalalignment='left', verticalalignment='top', fontsize=12, color='#555555')
-    # Create colorbar as a legend
-    sm = plt.cm.ScalarMappable(cmap='Blues', norm=plt.Normalize(vmin=vmin, vmax=vmax))
-    # empty array for the data range
-    sm._A = []
-    # add the colorbar to the figure
-    cbar = fig.colorbar(sm)
-    plt.show()
-'''
 
 def main(sys_argv):
     '''
