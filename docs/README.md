@@ -3,7 +3,7 @@
 * Stakeholder: Jennifer Chace (Executive Director)
 * Contributors: James Kim and Daryle Lamoureux (The Roux Institute at Northeastern University)
 
-## Disparities Found in Language Usage in Maine Counties
+## Disparities Identified in Language Usage in Maine Counties
 The Education ACTION Forum of Maine (Maine Ed Forum) has been conducting interviews across the state among youth, educators, community members and representatives from the state's industries. The goal of these conversations is to find insight and trends by groups, by county, etc. to understand better the concerns of the community in regards to education and education-related topics.
 
 ## Methodology
