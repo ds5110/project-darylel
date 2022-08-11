@@ -160,21 +160,22 @@ def preprocess(line, extra_stopwords):
     # Create set of English stopwords from nltk.corpus
     new_stops = ["according", "across", "actual", "actually", "additionally", "afar", "ago", "ah",
         "aj", "allie", "allison", "almost", "along", "already", "also", "although", "always", "among",
-        "amy", "anna", "annie", "apparently", "apart", "around", "b", "bit", "bob", "brian", "bring",
-        "brings", "charlie", "cindi", "colby", "come", "comes", "coming", "completely", "corey",
-        "cough", "could", "da", "debbie", "deidre", "dick", "easily", "emmanuel", "especially", "even",
-        "every", "everything", "finn", "forth", "frank", "get", "gets", "getting", "go", "goes",
-        "going", "gosh", "got", "gotten", "h", "happen", "happens", "helga", "hi", "ii", "jackie",
-        "jana", "janna", "jean", "jen", "jenny", "jerry", "joe", "john", "jolene", "judith", "julia", "kaitlin", "katelyn",
-        "kendrick", "kianna", "kristen", "leanne", "let", "lets", "lexie", "like", "likes", "lindsay",
-        "little", "logan", "look", "looks", "lot", "lots", "luke", "make", "makes", "making", "malin",
-        "mandy", "many", "matt", "may", "maybe", "might", "much", "nicole", "nina", "oh", "okay", "oops",
-        "p", "pas", "perhaps", "pete", "pop", "pops", "put", "puts", "pretty", "putting", "quite", "really",
-        "rodney", "said", "sally", "say", "saying", "says", "sec", "see", "seen", "sees", "seem", "seems",
-        "shalomi", "shelly", "sherry", "somebody", "something", "sort", "sorts", "specifically", "still", "strongly",
-        "stuff", "sure", "take", "takes", "tammy", "taylor", "thing", "things", "today", "told", "totally",
-        "twyla", "u", "uh", "umf", "unless", "upon", "using", "vo", "way", "well", "went", "whew", "whoa",
-        "would", "wow", "x", "yeah", "yep", "yes", "yet", "z"]
+        "amy", "anna", "annie", "apparently", "apart", "around", "b", "becky", "bit", "bob", "brian", "bring",
+        "brings", "charlie", "cindi", "clinton", "colby", "come", "comes", "coming", "completely", "corey",
+        "cough", "could", "da", "dante", "debbie", "deidre", "dick", "dionysus", "easily", "eaten", "emmanuel",
+        "especially", "evan", "even", "every", "everything", "finn", "forth", "frank", "get", "gets", "getting",
+        "go", "goes", "going", "gosh", "got", "gotta", "gotten", "h", "happen", "happens", "helga", "hi",
+        "ii", "jackie", "jana", "janna", "jean", "jen", "jenny", "jerry", "joe", "john", "jolene", "judith",
+        "julia", "kaitlin", "katelyn", "kendrick", "kianna", "kristen", "leanne", "let", "lets", "lexie",
+        "like", "likes", "lindsay", "little", "logan", "look", "looks", "lot", "lots", "luke", "make",
+        "makes", "making", "malin", "mandy", "many", "matt", "may", "maybe", "might", "much", "nicole",
+        "nina", "oh", "okay", "oops", "p", "pas", "perhaps", "pete", "pop", "pops", "put", "puts",
+        "pretty", "putting", "quite", "rand", "really", "rem", "rodney", "said", "sally", "say", "saying",
+        "says", "sec", "see", "seen", "sees", "seem", "seems", "shalomi", "shelly", "sherry", "somebody",
+        "something", "sort", "sorts", "specifically", "still", "strongly", "stuff", "sure", "take", "takes",
+        "tammy", "tandy", "tanya", "taylor", "thing", "things", "today", "told", "totally", "twyla", "u",
+        "uh", "umf", "unless", "upon", "using", "vo", "way", "well", "went", "whew", "whoa", "would", "wow",
+        "x", "yeah", "yep", "yes", "yet", "z"]
     stops = stopwords.words('english')
     
     # Adding speaker's name

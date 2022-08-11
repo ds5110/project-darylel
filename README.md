@@ -26,17 +26,11 @@ API provided by Maine Ed Forum to access data in real-time
 
 #### Code base: 
 
-Python using the following libraries: os, dotenv, re, requests, nltk, pandas, matplotlib, wordcloud, sklearn
+Python using the following libraries: os, dotenv, re, requests, nltk, pandas, matplotlib, wordcloud, sklearn, PIL
 
 #### Launching the program:
 ```
-python3 maine_ed.py help
-python3 maine_ed.py
-python3 maine_ed.py counties
-python3 maine_ed.py state
-python3 maine_ed.py groups
-python3 maine_ed.py tags
-python3 maine_ed.py (name of county)
+See examples below shown below with the output
 ```
 
 #### Functions within the program include:
