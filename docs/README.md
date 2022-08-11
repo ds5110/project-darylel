@@ -7,9 +7,9 @@
 Conversations about education throughout the state of Maine show the thoughts of concerns among citizens of the state definitely vary from county to county. When looking at the most common words (indicated by TF in the images below), there is overlap but there are also differences in the words encountered in those conversations. The disparities between the counties is much more noticeable in the conversations that focus on less commonly used words (indicated by TF-IDF in the images below) in these conversations. For example, Cumberland County participants used words like prestigious, musical, community, and church, while participants in Lincoln County used words like lobsterman, prevention, stability, troubling, and fundamental. This data could likely be correlated by layering in socioeconmic data as well as graduation rates and other data in these realms to identify possible trends related to the supplementary data.
 
 [ADD IMAGES TO SHOW WHAT'S HIGHLIGHTED ABOVE]
-![Aroostook County](../figs/aroostok-cropped.png)
-![fig1](../figs/cumberland-cropped.png)
-![fig1](../figs/kennebec-cropped.png)
+![Aroostook County](figs/aroostok-cropped.png)
+![fig1](..figs/cumberland-cropped.png)
+![fig2](../figs/kennebec-cropped.png)
 ![fig1](../figs/knox-cropped.png)
 ![fig1](../figs/lincoln-cropped.png)
 ![fig1](../figs/somerset_edited.png)
