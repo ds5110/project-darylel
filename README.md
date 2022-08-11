@@ -10,7 +10,7 @@ Conversations about education throughout the state of Maine show the thoughts of
 ![Aroostook County](figs/aroostok-cropped.png)
 ![fig1](/figs/cumberland-cropped.png)
 ![fig2](./figs/kennebec-cropped.png)
-![fig1](./figs/knox-cropped.png)
+<img src = "./figs/knox-cropped.png" width=700 />
 ![fig1](./figs/lincoln-cropped.png)
 ![fig1](./figs/somerset_edited.png)
 ![fig1](./figs/washington-cropped.png)
