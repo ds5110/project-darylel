@@ -8,7 +8,7 @@
 
 [ADD IMAGES TO SHOW WHAT'S HIGHLIGHTED ABOVE]
 ![Aroostook County](../figs/aroostok-cropped.png)
-![fig1](../figs/cumberland-cropped.png)
+![fig1](./figs/cumberland-cropped.png)
 ![fig1](../figs/kennebec-cropped.png)
 ![fig1](../figs/knox-cropped.png)
 ![fig1](../figs/lincoln-cropped.png)
