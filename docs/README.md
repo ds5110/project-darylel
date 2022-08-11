@@ -7,16 +7,14 @@
 Conversations about education throughout the state of Maine show the thoughts of concerns among citizens of the state definitely vary from county to county. When looking at the most common words (indicated by TF in the images below), there is overlap but there are also differences in the words encountered in those conversations. The disparities between the counties is much more noticeable in the conversations that focus on less commonly used words (indicated by TF-IDF in the images below) in these conversations. For example, Cumberland County participants used words like prestigious, musical, community, and church, while participants in Lincoln County used words like lobsterman, prevention, stability, troubling, and fundamental. This data could likely be correlated by layering in socioeconmic data as well as graduation rates and other data in these realms to identify possible trends related to the supplementary data.
 
 [ADD IMAGES TO SHOW WHAT'S HIGHLIGHTED ABOVE]
-![Aroostook County](figs/aroostok-cropped.png)
-![fig1](..figs/cumberland-cropped.png)
+![Aroostook County](../figs/aroostok-cropped.png)
+![fig1](../figs/cumberland-cropped.png)
 ![fig2](../figs/kennebec-cropped.png)
 ![fig1](../figs/knox-cropped.png)
 ![fig1](../figs/lincoln-cropped.png)
 ![fig1](../figs/somerset_edited.png)
 ![fig1](../figs/washington-cropped.png)
 ![fig1](../figs/york-cropped.png)
-
-<img src="https://github.com/ds5110/project-darylel/blob/main/figs/aroostok-cropped.png" />
 
 ## Words Matter
 A word may only be spoken once or twice during a lengthy conversation. Oftentimes this results in the word being disregarded. Words that are spoken the least during a conversation, however, may be critical to understanding the subtext or underlying tone of a conversation. This is even more powerful when looking at these less spoken words all together within the context of a conversation. This method used in this project looked at both the words that were spoken the most during a conversation and words that were spoken less often. The analysis of the two different methods side by side in some cases demonstrates what was stated previously -- the less spoken words can paint a very different picture of the conversation that took place. As an example, below is the analysis of Somerset County, which is a rural, northern county in Maine.
