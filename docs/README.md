@@ -12,7 +12,7 @@
 ![fig1](../figs/kennebec-cropped.png)
 ![fig1](../figs/knox-cropped.png)
 ![fig1](../figs/lincoln-cropped.png)
-![fig1](../figs/somerset_edited-cropped.png)
+![fig1](../figs/somerset_edited.png)
 ![fig1](../figs/washington-cropped.png)
 ![fig1](../figs/york-cropped.png)
 
