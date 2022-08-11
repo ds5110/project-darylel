@@ -7,6 +7,7 @@
 [ADD SHOWING THE DIFFERENCES IN SOME OF THE CONVERSATIONS ... like York County, Cumberland County and Aroostok or Kennebec counties]
 
 [ADD IMAGES TO SHOW WHAT'S HIGHLIGHTED ABOVE]
+<img src="../figs/aroostok-cropped.png" alt="Aroostook County">
 ![Aroostook County](../figs/aroostok-cropped.png)
 ![fig1](../figs/cumberland-cropped.png)
 ![fig1](../figs/kennebec-cropped.png)
