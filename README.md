@@ -50,9 +50,8 @@ Bridgton, Cumberland County, Maine      1                  4
 Kennebec County, Maine                  5                 22
 Knox County, Maine                      1                  4
 Lincoln County, Maine                   3                 13
-Maine                                   8                 45
+Maine (No county identified)            9                 49
 Somerset County, Maine                  4                 16
-Unknown                                 1                  4
 Washington County, Maine                4                 16
 York County, Maine                      1                  3
 ```
