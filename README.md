@@ -40,11 +40,11 @@ A word may only be spoken once or twice during a lengthy conversation. Oftentime
 
 The analysis on the left of the most common words shows words that would be expected in a conversation about education, such as school, education, teacher, and community. The analysis on the right of the least common words shows the struggles that the community is experiencing and its impact on education. The words include: pregnant, anxiety, divorce, tension, recover, survival, and resilience. By examining the least common words used, this could provide insight for follow up conversations within Somerset and other counties.
 
-#### Meter
+#### Overview of Conversations
 
 ```
-                                    title  participant_count
-county
+                                    Conversations  Participants
+County
 Aroostook County, Maine                 3                 14
 Bridgton, Cumberland County, Maine      1                  4
 Kennebec County, Maine                  5                 22
