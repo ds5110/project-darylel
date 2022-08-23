@@ -8,26 +8,26 @@ It then analyzes and visualizes the data from those files.
 '''
 import os
 import sys
-from dotenv import load_dotenv
 import re
+from datetime import date
+from dotenv import load_dotenv
+import pandas as pd
 import requests
 from requests.structures import CaseInsensitiveDict
 from nltk.corpus import stopwords
 from nltk.stem import WordNetLemmatizer
 import nltk
-nltk.download('wordnet')
-nltk.download('stopwords')
-nltk.download('omw-1.4')
-import pandas as pd
-load_dotenv()
-import read_files 
 from sklearn.feature_extraction.text import CountVectorizer, TfidfVectorizer
 import matplotlib.pyplot as plt
 from wordcloud import WordCloud
 import numpy as np
 from PIL import Image
+nltk.download('wordnet')
+nltk.download('stopwords')
+nltk.download('omw-1.4')
+load_dotenv()
 
-def make_call(content, params={}):
+def make_call(content, params=None):
     '''
     Reusable function to make API calls
 
@@ -48,7 +48,7 @@ def make_call(content, params={}):
     headers["Accept"] = "application/json"
     headers["Authorization"] = "Bearer " + auth_token
 
-    if params != {}:
+    if params is not None:
         resp = requests.get(url, headers=headers, params=params)
     else:
         resp = requests.get(url, headers=headers)
@@ -69,6 +69,7 @@ def get_convo_ids():
     all_ids = list()
 
     # Parameters for the API call
+    # Pagination will need to be adjusted if conversations becomes > 100
     params = {
         "collection_ids": "150",
         "page_size": "100"
@@ -141,7 +142,21 @@ def get_conversations(ids):
                 conversation.append(tags)
                 conversation.append(session)
                 conversation.append(conversation_id)
-                conversation.append(resp.get('location').get('name'))
+                # Normalize all 'Unknown' to 'Maine' and
+                # Augusta -> kennebec and Bridgton, -> cumberland
+                loc = resp.get('location').get('name')
+                if loc != 'Maine' and loc != 'Unknown':
+                    loc = loc.split(' ')
+                    if loc[0] == 'Augusta,':
+                        conversation.append('kennebec')
+                    elif loc[0] == 'Bridgton,':
+                        conversation.append('cumberland')
+                    elif loc[0] == 'Presque':
+                        conversation.append('aroostook')
+                    else:
+                        conversation.append(loc[0].lower())
+                else:
+                    conversation.append('maine')
                 conversation.append(resp.get('participant_count'))
                 conversations.append(conversation)
 
@@ -159,27 +174,30 @@ def preprocess(line, extra_stopwords):
     '''
     # Create set of English stopwords from nltk.corpus
     new_stops = ["abby", "according", "across", "actual", "actually", "additionally", "afar", "ago",
-        "ah", "aj", "alana", "allie", "allison", "almost", "along", "already", "also", "although",
-        "always", "amanda", "among", "amy", "anna", "annie", "anyhow", "apparently", "apart",
-        "aroostook", "around", "b", "becky", "bit", "blah", "bob", "brian", "bring", "brings",
-        "charlie", "cindi", "clinton", "colby", "come", "comes", "coming", "completely", "corey",
-        "cough", "could", "da", "dante", "darn", "debbie", "deidre", "dick", "dionysus", "easily",
-        "eaten", "ellie", "emmanuel", "especially", "evan", "even", "every", "everything", "faye",
-        "finn", "forth", "frank", "get", "gets", "getting", "go", "goes", "going", "gosh", "got",
-        "gotta", "gotten", "h", "happen", "happens", "helga", "hi", "hmm", "ii", "isla", "isle",
-        "jackie", "jana", "jane", "janna", "jean", "jen", "jenny", "jerry", "joe", "john", "jolene",
-        "judith", "julia", "kaitlin", "katelyn", "ken", "kendrick", "kianna", "kristen", "leanne",
-        "let", "lets", "lexie", "like", "likes", "linda", "lindsay", "little", "liz", "logan",
-        "look", "looks", "lot", "lots", "luke", "make", "makes", "making", "malin", "mandy", "many",
-        "mary", "matt", "may", "maybe", "mc", "might", "mm", "much", "nicole", "nina", "oh", "okay",
-        "oops", "p", "part", "pas", "perhaps", "perry", "pete", "pop", "pops", "pre", "presque",
-        "pretty", "put", "puts", "putting", "quite", "rand", "really", "reece", "rem", "rodney",
-        "said", "sally", "say", "saying", "says", "sec", "see", "seen", "sees", "seem", "seems",
-        "shalomi", "shelly", "sherry", "somebody", "something", "sort", "sorts", "specifically",
-        "spoken", "still", "strongly", "stuff", "sure", "take", "takes", "tammy", "tandy", "tanya",
-        "taylor", "thing", "things", "today", "told", "totally", "twyla", "u", "uh", "umf", "unless",
-        "unquote", "upon", "usually", "using", "vo", "wanda", "way", "wayne", "well", "went", "whew",
-        "whoa", "would", "wow", "x", "yeah", "yep", "yes", "yet", "z"]
+        "ah", "aj", "alana", "alice", "allie", "allison", "almost", "along", "already", "also",
+        "although", "always", "amanda", "among", "amy", "andy", "anna", "annie", "anyhow", "apparently",
+        "apart", "ari", "aroostook", "around", "b", "becky", "ben", "bit", "blah", "bob", "brian",
+        "bring", "brings", "casey", "certainly", "charlie", "cindi", "clinton", "colby", "come",
+        "comes", "coming", "completely", "corey", "cough", "could", "da", "dana", "dante", "darn",
+        "debbie", "deidre", "denise", "dick", "dionysus", "doris", "easily", "eaten", "ellie", "emelie",
+        "emmanuel", "especially", "evan", "even", "every", "everything", "faye", "finn", "forth",
+        "frank", "geez", "gemma", "get", "gets", "getting", "go", "goes", "going", "gosh", "got",
+        "gotta", "gotten", "h", "happen", "happens", "helga", "hi", "hmm", "holly", "ii", "isla",
+        "isle", "jackie", "jana", "jane", "janna", "jason", "jean", "jen", "jenny", "jerry", "joe",
+        "john", "jolene", "judith", "julia", "kaitlin", "karen", "katelyn", "katrina", "ken",
+        "kendrick", "kianna", "kim", "kristen", "larissa", "leanne", "let", "lets", "lexie", "like",
+        "likes", "linda", "lindsay", "little", "liz", "logan", "look", "looks", "lot", "lots", "luke",
+        "make", "makes", "making", "malin", "mandy", "many", "mary", "matt", "may", "maybe", "mc",
+        "might", "mm", "much", "nancy", "nick", "nicole", "nina", "oh", "okay", "one", "oops", "p",
+        "part", "pas", "people", "perhaps", "perry", "pete", "pop", "pops", "pre", "presque", "pretty",
+        "put", "puts", "putting", "quite", "rand", "really", "reece", "rem", "rhiannon", "rob",
+        "rodney", "said", "sally", "sarah", "say", "saying", "says", "sec", "see", "seen", "sees",
+        "seem", "seems", "seth", "shalomi", "shelly", "sherry", "somebody", "something", "sort",
+        "sorts", "specifically", "spoken", "still", "strongly", "stuff", "sure", "take", "takes", "tammy",
+        "tandy", "tanya", "taylor", "thing", "things", "time", "today", "told", "tonya", "totally",
+        "twyla", "u", "uh", "umf", "unless", "unquote", "upon", "usually", "using", "vo", "wanda", "way",
+        "wayne", "well", "went", "whew", "whoa", "would", "wow", "x", "yeah", "year", "yep", "yes",
+        "yet", "z"]
     stops = stopwords.words('english')
     
     # Adding speaker's name
@@ -220,85 +238,246 @@ def create_dataframe(data, columns):
     
     return df
 
-def create_plot(df, style, category):
+def create_bar(tf, tf_feature_names, tfidf, tfidf_feature_names, category):
+    '''
+    Creates a bar graph of the most common (tf) and least common (tfidf) words
+    Inputs:
+        tf: total count vector
+        tf_feature_names: names of the features in the count vector
+        tfidf: tfidf weighted vector
+        tfidf_features_names: names of the features in the tfidf vector
+        category: the category to be plotted
+    '''
+    # Sort tfidf from large to small (default sort is increasing)
+    tf_sorted_indices = np.argsort(-tf) # these are the indices of the sort
+    sorted_tf = [tf[j] for j in tf_sorted_indices] # this is the sorted array
+    tf_sorted_features = [tf_feature_names[j] for j in tf_sorted_indices] # features sorted by tfidf
+
+    tfidf_sorted_indices = np.argsort(-tfidf) # these are the indices of the sort
+    sorted_tfidf = [tfidf[j] for j in tfidf_sorted_indices] # this is the sorted array
+    tfidf_sorted_features = [tfidf_feature_names[j] for j in tfidf_sorted_indices] # features sorted by tfidf
+
+    fig, ax = plt.subplots(1,2,figsize=(24,5))
+    
+    ax[0].bar(tf_sorted_features[:25], sorted_tf[:25], 
+            width=1, alpha=.5, edgecolor='black')
+    ax[0].set_title('Most Used (TF) Words in ' + category.title())
+    ax[0].set_xticks(tf_sorted_features[:25])
+    ax[0].set_xticklabels(tf_sorted_features[:25],rotation=65)
+
+    ax[1].bar(tfidf_sorted_features[:25], sorted_tfidf[:25], 
+            width=1, alpha=.5, edgecolor='black')
+    ax[1].set_title('Least Used (TF-IDF) Words in ' + category.title())
+    ax[1].set_xticks(tfidf_sorted_features[:25])
+    ax[1].set_xticklabels(tfidf_sorted_features[:25],rotation=65)
+
+    # Save figure as an image
+    plt.savefig('../figs/bar/' + category + '-bar-' + str(date.today()) + '.png')
+
+    # Display figure on the screen
+    plt.show()
+
+def create_cloud(tf_dict, tfidf_dict, title, mapImage):
+    '''
+    Generate the cloud visualizations
+
+    Inputs:
+        tf_dict: dictionary of total word counts
+        tfidf_dict: dictionary of tf-idf word weights
+        title: string representing the title of the visualization
+        mapImage: the name of the image to be used for visualization
+    '''
+    # Create map mask
+    img = np.array(Image.open('../maps/' + mapImage + '.png'))
+    img_mask = img.copy()
+    img_mask[img_mask.sum(axis=2) == 0] = 255
+
+    # Create cloud
+    tf_cloud = WordCloud(max_words=100, mask=img_mask, contour_width=3, contour_color='firebrick', \
+        background_color='white').generate_from_frequencies(tf_dict)
+    tfidf_cloud = WordCloud(max_words=100, mask=img_mask, contour_width=3, contour_color='firebrick', \
+        background_color="white").generate_from_frequencies(tfidf_dict)
+
+    # Plot the visualization
+    fig, ax = plt.subplots(1,2,figsize=(24,5))
+    ax[0].imshow(tf_cloud, interpolation='bilinear')
+    ax[0].set_title('Most Used (TF) Words in ' + title.title())
+    ax[0].axis("off")
+
+    ax[1].imshow(tfidf_cloud, interpolation='bilinear')
+    ax[1].set_title('Least Used (TF-IDF) Words in ' + title.title())
+    ax[1].axis("off")
+
+    # Save figure as an image
+    plt.savefig('../figs/cloud/' + title + '-cloud-' + str(date.today()) + '.png')
+
+    # Display figure on the screen
+    plt.show()
+
+def create_plot(df, category, style):
     '''
     Plot and show the wordcloud from a Pandas dataframe
 
     Inputs:
         df: Pandas dataframe
         type: bar, cloud
-        category: "maine", "counties", "androscogin", "aroostook", "cumberland", "franklin", 
-                "hancock", "kennebec", "knox", "lincoln", "penobscot", "piscataquis", 
-                "sagadahoc", "somerset", "waldo", "washington", "york"
-    Returns:
-        null
+        category: String with the name of the category (i.e., "maine, counties, groups, etc.)
+    Return: message indicating success or an error
     '''
-    # parse command line argument
-    tfVectorizer = CountVectorizer()
-    tfidfVectorizer = TfidfVectorizer(sublinear_tf=True)
+    # Initialize message
+    message = ''
 
-    # sparse_matrix & feature_names defined here, and used below
-    tf_sparse_matrix = tfVectorizer.fit_transform(df['sentence'])
-    tfidf_sparse_matrix = tfidfVectorizer.fit_transform(df['sentence'])
-    tf_feature_names = tfVectorizer.get_feature_names_out() 
-    tfidf_feature_names = tfidfVectorizer.get_feature_names_out() 
+    # Intialize text vectorizers
+    tf_vectorizer = CountVectorizer()
+    tf_idf_vectorizer = TfidfVectorizer(sublinear_tf=True)
 
-    # current available category
-    countiesDict = {"aroostook": 0, "cumberland":1, "kennebec": 2,  "knox":3, "lincoln":4, "somerset":6, "washington":8, "york": 9}
-    if(category=='maine'):
-        print(tf_feature_names)
-        tf = tf_sparse_matrix[0,:].toarray()[0]
-        tfidf = tfidf_sparse_matrix[0,:].toarray()[0]
-    elif(category=='counties'):
-        for county in countiesDict:
-            create_plot(df, style, county)
-    elif(category in countiesDict):
-        tf = tf_sparse_matrix[countiesDict[category],:].toarray()[0]
-        tfidf = tfidf_sparse_matrix[countiesDict[category],:].toarray()[0]
+    # Create a copy of the dataframe
+    df = df.copy()
 
-    if(category!='counties'):
-        if(style == 'cloud'):
-            ### map mask
-            img = np.array(Image.open("../figs/" + category + ".png"))
-            img_mask = img.copy()
-            img_mask[img_mask.sum(axis=2) == 0] = 255
+    # Removing facilitator
+    df = df[df.facilitator != True]
 
-            tf_dict = dict(zip(tf_feature_names, tf))
-            tfidf_dict = dict(zip(tfidf_feature_names, tfidf))
+    # Rebuild sentences from the lemmatized words
+    df['sentence'] = df['sentence'].apply(lambda x: ' '.join(x))
 
-            tf_wordcloud = WordCloud(max_words=100, mask=img_mask, contour_width=3, contour_color='firebrick', background_color="white").generate_from_frequencies(tf_dict)
-            tfidf_wordcloud = WordCloud(max_words=100, mask=img_mask, contour_width=3, contour_color='firebrick', background_color="white").generate_from_frequencies(tfidf_dict)
+    # Get names of all the counties that are in the dataset
+    data_counties = df['county'].drop_duplicates().to_list()
+    counties = sorted(data_counties)
 
-            fig, ax = plt.subplots(1,2,figsize=(24,5))
-            ax[0].imshow(tf_wordcloud, interpolation='bilinear')
-            ax[0].set_title('TF of ' + category)
-            ax[0].axis("off")
+    # Get names of all the groups
+    data_groups = df['group'].drop_duplicates().to_list()
+    groups = sorted(data_groups)
 
-            ax[1].imshow(tfidf_wordcloud, interpolation='bilinear')
-            ax[1].set_title('TF-IDF of ' + category)
-            ax[1].axis("off")
-        elif(style=='bar'):
-            # Sort tfidf from large to small (default sort is increasing)
-            tf_sorted_indices = np.argsort(-tf) # these are the indices of the sort
-            sorted_tf = [tf[j] for j in tf_sorted_indices] # this is the sorted array
-            tf_sorted_features = [tf_feature_names[j] for j in tf_sorted_indices] # features sorted by tfidf
+    # Get all the tags
+    all_tags = df['tags'].tolist()
+    tags = sorted(list(set([x for tag in all_tags for x in tag])))
+    
+    # Plot state data
+    if category == 'maine':
+        df['county'].replace(counties, 'maine')
+        df = df.groupby('county').agg({'sentence': lambda x: ' '.join(x)}).reset_index()
+        for county in data_counties:
+            if county == 'maine':
+                # Count vectorizer
+                tf_sparse = tf_vectorizer.fit_transform(df['sentence'])
+                tf_features = tf_vectorizer.get_feature_names_out()
+                tf = tf_sparse[counties.index(county),:].toarray()[0]
+                tf_dict = dict(zip(tf_features,tf))
 
-            tfidf_sorted_indices = np.argsort(-tfidf) # these are the indices of the sort
-            sorted_tfidf = [tfidf[j] for j in tfidf_sorted_indices] # this is the sorted array
-            tfidf_sorted_features = [tfidf_feature_names[j] for j in tfidf_sorted_indices] # features sorted by tfidf
+                # Tf-idf Vectorizer
+                tfidf_sparse = tf_idf_vectorizer.fit_transform(df['sentence'])
+                tfidf_features = tf_idf_vectorizer.get_feature_names_out()
+                tfidf = tfidf_sparse[counties.index(county),:].toarray()[0]
+                tfidf_dict = dict(zip(tfidf_features,tfidf))
 
-            fig, ax = plt.subplots(1,2,figsize=(24,5))
-            
-            ax[0].bar(tf_sorted_features[:10], sorted_tf[:10], 
-                    width=1, alpha=.5, edgecolor='black')
-            ax[0].set_title('TF of ' + category)
-            ax[0].set_xticklabels(tf_sorted_features[:10],rotation=45)
+                # Generate cloud or bar visualization
+                if style == 'cloud':
+                    # Create cloud plot
+                    create_cloud(tf_dict, tfidf_dict, county, county)
+                elif style == 'bar':
+                    #Create bar graph visualization
+                    create_bar(tf, tf_features, tfidf, tfidf_features, county)
+                else:
+                    return 'Error: Available choices only: <cloud | bar>'
+                
+                message = 'success'   
 
-            ax[1].bar(tfidf_sorted_features[:10], sorted_tfidf[:10], 
-                    width=1, alpha=.5, edgecolor='black')
-            ax[1].set_title('TF-IDF of ' + category)
-            ax[1].set_xticklabels(tfidf_sorted_features[:10],rotation=45)
-        plt.show()
+    # Plot the counties data
+    if category == 'counties':
+        df = df.groupby('county').agg({'sentence': lambda x: ' '.join(x)}).reset_index()
+        
+        # Create a visualization for each county
+        for county in counties:
+            if county == 'maine':
+                pass
+            else:
+                # Count vectorizer
+                tf_sparse = tf_vectorizer.fit_transform(df['sentence'])
+                tf_features = tf_vectorizer.get_feature_names_out()
+                tf = tf_sparse[counties.index(county),:].toarray()[0]
+                tf_dict = dict(zip(tf_features,tf))
+
+                # Tf-idf Vectorizer
+                tfidf_sparse = tf_idf_vectorizer.fit_transform(df['sentence'])
+                tfidf_features = tf_idf_vectorizer.get_feature_names_out()
+                tfidf = tfidf_sparse[counties.index(county),:].toarray()[0]
+                tfidf_dict = dict(zip(tfidf_features,tfidf))
+
+                # Generate cloud or bar visualization
+                if style == 'cloud':
+                    # Create cloud visualization
+                    create_cloud(tf_dict, tfidf_dict, county, county)
+                elif style == 'bar':
+                    #Create bar graph visualization
+                    create_bar(tf, tf_features, tfidf, tfidf_features, county)
+                else:
+                    return 'Error: Available choices only: <cloud | bar>'
+
+            message = 'success'
+    
+    # Plot the groups data
+    if category == 'groups':
+        df = df.groupby('group').agg({'sentence': lambda x: ' '.join(x)}).reset_index()
+        
+        # Create a visualization for each county
+        for group in groups:
+            # Count vectorizer
+            tf_sparse = tf_vectorizer.fit_transform(df['sentence'])
+            tf_features = tf_vectorizer.get_feature_names_out()
+            tf = tf_sparse[groups.index(group),:].toarray()[0]
+            tf_dict = dict(zip(tf_features,tf))
+
+            # Tf-idf Vectorizer
+            tfidf_sparse = tf_idf_vectorizer.fit_transform(df['sentence'])
+            tfidf_features = tf_idf_vectorizer.get_feature_names_out()
+            tfidf = tfidf_sparse[groups.index(group),:].toarray()[0]
+            tfidf_dict = dict(zip(tfidf_features,tfidf))
+
+            # Generate cloud or bar visualization
+            if style == 'cloud':
+                # Create cloud visualization
+                create_cloud(tf_dict, tfidf_dict, group, 'maine')
+            elif style == 'bar':
+                #Create bar graph visualization
+                create_bar(tf, tf_features, tfidf, tfidf_features, group)
+            else:
+                return 'Error: Available choices only: <cloud | bar>'
+
+        message = 'success'
+    
+    # Plot the tags data
+    if category == 'tags':
+        # Create a visualization for each county
+        for tag in tags:
+            # Create a dataframe with all the words associated with a tag
+            new_df = df[pd.DataFrame(df.tags.tolist()).isin([tag]).any(1).values]
+            new_df = new_df.groupby('facilitator').agg({'sentence': lambda x: ' '.join(x)}).reset_index()
+
+            # TF Vectorizer
+            tf_sparse = tf_vectorizer.fit_transform(new_df['sentence'])
+            tf_features = tf_vectorizer.get_feature_names_out()
+            tf = tf_sparse[0,:].toarray()[0]
+            tf_dict = dict(zip(tf_features,tf))
+
+            # Tf-idf Vectorizer
+            tfidf_sparse = tf_idf_vectorizer.fit_transform(new_df['sentence'])
+            tfidf_features = tf_idf_vectorizer.get_feature_names_out()
+            tfidf = tfidf_sparse[0,:].toarray()[0]
+            tfidf_dict = dict(zip(tfidf_features,tfidf))
+
+            # Generate cloud or bar visualization
+            if style == 'cloud':
+                # Create cloud visualization
+                create_cloud(tf_dict, tfidf_dict, tag, 'maine')
+            elif style == 'bar':
+                #Create bar graph visualization
+                create_bar(tf, tf_features, tfidf, tfidf_features, tag)
+            else:
+                return 'Error: Available choices only: <cloud | bar>'
+
+        message = 'success'
+    
+    return message
 
 def main(sys_argv):
     '''
@@ -314,86 +493,46 @@ def main(sys_argv):
     columns = ['speaker','facilitator', 'sentence', 'group', 'tags', 'title', 'conversation_id', 'county','participant_count']
     df = create_dataframe(all_conversations, columns)
 
-    # Removing facilitator
-    df = df[df.facilitator != True]
-
-    # Coverting type of each cell in df['sentence'] from list to str
-    # To apply, fit function later
-    df['sentence'] = df['sentence'].apply(lambda x: ' '.join(x))
-
-    # replacing subordianted county
-    df = df.replace(['Augusta, Kennebec County, Maine', 'Presque Isle, Aroostook County, Maine'],['Kennebec County, Maine','Aroostook County, Maine'])
-
-    
     # Enable CLI commands to get data
     if (len(sys_argv) == 1):
-        # df = df.groupby('county').agg({'title': pd.Series.nunique}).reset_index()
-        dfgb = df.groupby(['county'])
-        df1 = dfgb.agg({'title': pd.Series.nunique})
-        df2 = dfgb.agg(lambda x: x.drop_duplicates('title', keep='first').participant_count.sum())
-        df = pd.concat([df1, df2['participant_count']],1)
-        
-        # testing
-        print("""\n############################################
-# THE NUMBER OF CONVERSATIONS HAPPENED AND #
-# THE NUMBER OF PARTICIPANT INVOLVED TOTAL #
-# WITHIN EACH COUNTY                       #
-############################################""")
-        print(df)
-    
-    elif(len(sys_argv)>=2):
-        countiesList = ["androscogin", "aroostook", "cumberland", "franklin", 
-                "hancock", "kennebec", "knox", "lincoln", "penobscot", "piscataquis", 
-                "sagadahoc", "somerset", "waldo", "washington", "york"]
-        groupsList = []
-
+            dfgb = df.groupby(['county'])
+            df1 = dfgb.agg({'title': pd.Series.nunique})
+            df2 = dfgb.agg(lambda x: x.drop_duplicates('title', keep='first').participant_count.sum())
+            df = pd.concat([df1, df2['participant_count']],1)
+            
+            # testing
+            print("""\n############################################
+                # THE NUMBER OF CONVERSATIONS HAPPENED AND #
+                # THE NUMBER OF PARTICIPANT INVOLVED TOTAL #
+                # WITHIN EACH COUNTY                       #
+                ############################################""")
+            # Testing
+            #print(df)
+    elif (len(sys_argv) <= 2):
+        # Print the help message
+        print("""
+        Generates bar chart or word clouds of important words within categories using data by Ed Maine Forums from LVN API\n
+        $python3 maine_ed.py help
+        : print help\n
+        $python3 maine_ed.py
+        : print out the number of conversations happened and the number of participant involved total within each county\n
+        $python3 maine_ed.py <maine | counties | groups | tags > <bar | cloud>
+        : maine: plot <bar | cloud> of most frequent word from every conversation
+        : counties: plot <bar | cloud> for every county in Maine where a conversation took place
+        : groups: plot <bar | cloud> for every group that took part in the conversations
+        : tags: plot <bar | cloud> for every tag that has been added to responses in the conversations
+        """)
+    elif(len(sys_argv) >= 2):
         # Processing dataframe according to sys_argv[1]
-        if (sys_argv[1] == 'help'):
-            print("""
-            You can get bar chart or wordcloud of important word within categories using data by Ed Maine Forums from LVN API
-            $python3 maine_ed.py
-            : print help\n
-            $python3 maine_ed.py
-            : print out the number of conversations happened and the number of participant involved total within each county\n
-            $python3 maine_ed.py <counties | groups | tags | maine |  name of county | name of group> <bar | cloud>
-            : counties: plot <bar | cloud> for every county in Maine if it exist in the dataframe
-            : groups: not implemented yet, (plot <bar | cloud> for every group)
-            : tags: not implemented yet
-            : maine: plot <bar | cloud> of most frequent word from every conversation
-            : name of county: plot <bar | cloud> for specified county if it exist in the dataframe
-            : name of group: not implemented yet, (plot <bar | cloud> for specified group)
-            """)
-            return
-        elif sys_argv[1] == 'counties' or sys_argv[1] in countiesList:
-            df = df.groupby('county').agg({'sentence': lambda x: ' '.join(x)}).reset_index()
-        elif sys_argv[1] == 'groups'or sys_argv[1] in groupsList:
-            df = df.groupby('group').agg({'sentence': lambda x: ' '.join(x)}).reset_index()
-        elif sys_argv[1] == 'maine':
-            df = pd.DataFrame({'sentence': [' '.join(df['sentence'].tolist())]})
-        elif sys_argv[1] == 'tags':
-            pass
-        else:
-            print('''\nERROR: FLAG NOT FOUND
-            Use the command 
-            $python3 maine_ed.py <counties | groups | tags | maine |  name of county | name of group> <bar | cloud>
-            ''')
-        
-        # testing
-        print("processed df")
-        print(df)
-        print(df.shape)
-
-        # Action according to sys_argv[2]
-        if ((len(sys_argv) > 2) and (sys_argv[2] in ['bar','cloud'])):
-            create_plot(df, sys_argv[2], sys_argv[1])
-        else:
-            print('''\nERROR: MISSING FLAG
-            Need to provide <bar | cloud>. Use the command
-            $python3 maine_ed.py <counties | groups | tags | maine |  name of county | name of group> <bar | cloud>''')    
+        result = create_plot(df, sys_argv[1], sys_argv[2])
     else:
-        print('''\nERROR: TOO MANY FLAG
-        Use the command
-        $python3 maine_ed.py <counties | groups | tags | maine |  name of county | name of group> <bar | cloud>''')
+        # Print error message if none of the above apply
+        print('''\nERROR: Use the command:
+        $python3 maine_ed.py <maine | counties | groups | tags> <bar | cloud>''')
+
+    # Print this message if unable to create a visualization
+    if result != 'success':
+        print('Unable to process the request. Please try again.')
 
 if __name__ == "__main__":
     main(sys.argv)
