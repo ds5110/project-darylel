@@ -56,9 +56,11 @@ def make_call(content, params=None):
         resp_json: JSON with the response data
     '''
     # Get API authentication token from .env
+    # User will have to have a token issued by LVN/Maine Ed Forum and save it in a .env file locally
     auth_token = os.environ.get("API_TOKEN")
 
     # URL for API call
+    # This currently uses version v1. If there is version update in the future, update the link here
     url = 'https://api.lvn.org/v1/' + content
 
     # Define header for API call
