@@ -43,7 +43,9 @@ bob
 brian
 bring
 brings
+callie
 casey
+cassandra
 certainly
 charles
 charlie
@@ -121,6 +123,7 @@ jenny
 jerry
 jim
 jimmy
+jj
 joe
 john
 jolene
@@ -131,6 +134,7 @@ kaitlin
 kara
 karen
 katelyn
+katie
 katrina
 kelsey
 ken
@@ -167,13 +171,17 @@ may
 maybe
 mc
 might
+missa
 mm
 much
 nancy
+naomi
 nick
 nicole
 nina
+obviously
 oh
+ok
 okay
 one
 oops
@@ -251,6 +259,7 @@ usually
 using
 vo
 wanda
+wanted
 way
 wayne
 well
