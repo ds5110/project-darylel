@@ -27,6 +27,24 @@ nltk.download('stopwords')
 nltk.download('omw-1.4')
 load_dotenv()
 
+def add_stopwords():
+    '''
+    Extend stopwords from .txt file
+    Return:
+        stops: list of stopwords
+    '''
+    # Initialize list to hold custom stopword
+    stops = list()
+
+    # Read stopwords from txt file
+    with open('custom_stopwords.txt', 'r', encoding='utf-8') as f:
+        data = f.read()
+
+    # Create a list of custom stopwords
+    stops = data.split('\n')
+
+    return stops
+
 def make_call(content, params=None):
     '''
     Reusable function to make API calls
@@ -116,7 +134,7 @@ def get_conversations(ids):
                 for word in s['words']:
                     temp.append(word[0])
                 sentence = ' '.join(temp)
-                sentence = preprocess(sentence, s['speaker_name'].lower())
+                sentence = preprocess(sentence)
                 conversation.append(sentence)
 
                 # Assign the appropriate group to each conversations
@@ -162,47 +180,18 @@ def get_conversations(ids):
 
     return conversations
 
-def preprocess(line, extra_stopwords):
+def preprocess(line):
     '''
     Create and preprocess a word list from file content
 
     Inputs:
         line: Sentence (string) to be preprocessed
-        extra_stopwords: extra stopwords provided, e.g. speaker's name
     Returns:
         word_list: List of preprocessed words from the sentence
     '''
-    # Create set of English stopwords from nltk.corpus
-    new_stops = ["abby", "according", "across", "actual", "actually", "additionally", "afar", "ago",
-        "ah", "aj", "alana", "alice", "allie", "allison", "almost", "along", "already", "also",
-        "although", "always", "amanda", "among", "amy", "andy", "anna", "annie", "anyhow", "apparently",
-        "apart", "ari", "aroostook", "around", "b", "becky", "ben", "bit", "blah", "bob", "brian",
-        "bring", "brings", "casey", "certainly", "charlie", "cindi", "clinton", "colby", "come",
-        "comes", "coming", "completely", "corey", "cough", "could", "da", "dana", "dante", "darn",
-        "debbie", "deidre", "denise", "dick", "dionysus", "doris", "easily", "eaten", "ellie", "emelie",
-        "emmanuel", "especially", "evan", "even", "every", "everything", "faye", "finn", "forth",
-        "frank", "geez", "gemma", "get", "gets", "getting", "go", "goes", "going", "gosh", "got",
-        "gotta", "gotten", "h", "happen", "happens", "helga", "hi", "hmm", "holly", "ii", "isla",
-        "isle", "jackie", "jana", "jane", "janna", "jason", "jean", "jen", "jenny", "jerry", "joe",
-        "john", "jolene", "judith", "julia", "kaitlin", "karen", "katelyn", "katrina", "ken",
-        "kendrick", "kianna", "kim", "kristen", "larissa", "leanne", "let", "lets", "lexie", "like",
-        "likes", "linda", "lindsay", "little", "liz", "logan", "look", "looks", "lot", "lots", "luke",
-        "make", "makes", "making", "malin", "mandy", "many", "mary", "matt", "may", "maybe", "mc",
-        "might", "mm", "much", "nancy", "nick", "nicole", "nina", "oh", "okay", "one", "oops", "p",
-        "part", "pas", "people", "perhaps", "perry", "pete", "pop", "pops", "pre", "presque", "pretty",
-        "put", "puts", "putting", "quite", "rand", "really", "reece", "rem", "rhiannon", "rob",
-        "rodney", "said", "sally", "sarah", "say", "saying", "says", "sec", "see", "seen", "sees",
-        "seem", "seems", "seth", "shalomi", "shelly", "sherry", "somebody", "something", "sort",
-        "sorts", "specifically", "spoken", "still", "strongly", "stuff", "sure", "take", "takes", "tammy",
-        "tandy", "tanya", "taylor", "thing", "things", "time", "today", "told", "tonya", "totally",
-        "twyla", "u", "uh", "umf", "unless", "unquote", "upon", "usually", "using", "vo", "wanda", "way",
-        "wayne", "well", "went", "whew", "whoa", "would", "wow", "x", "yeah", "year", "yep", "yes",
-        "yet", "z"]
+    # Add nltk.corpus stopwords and extend the stopwords using add_stopwords()
+    new_stops = add_stopwords()
     stops = stopwords.words('english')
-    
-    # Adding speaker's name
-    if(len(extra_stopwords)>0):
-        stops.append(extra_stopwords)
     stops.extend(new_stops)
     stops = set(stops)
 
@@ -258,13 +247,15 @@ def create_bar(tf, tf_feature_names, tfidf, tfidf_feature_names, category):
     tfidf_sorted_features = [tfidf_feature_names[j] for j in tfidf_sorted_indices] # features sorted by tfidf
 
     fig, ax = plt.subplots(1,2,figsize=(24,5))
-    
+
+    # Currently displays 25 words. Change [:25] to the desired value for >25 or <25
     ax[0].bar(tf_sorted_features[:25], sorted_tf[:25], 
             width=1, alpha=.5, edgecolor='black')
     ax[0].set_title('Most Used (TF) Words in ' + category.title())
     ax[0].set_xticks(tf_sorted_features[:25])
     ax[0].set_xticklabels(tf_sorted_features[:25],rotation=65)
 
+    # Currently displays 25 words. Change [:25] to the desired value for >25 or <25
     ax[1].bar(tfidf_sorted_features[:25], sorted_tfidf[:25], 
             width=1, alpha=.5, edgecolor='black')
     ax[1].set_title('Least Used (TF-IDF) Words in ' + category.title())
@@ -272,6 +263,8 @@ def create_bar(tf, tf_feature_names, tfidf, tfidf_feature_names, category):
     ax[1].set_xticklabels(tfidf_sorted_features[:25],rotation=65)
 
     # Save figure as an image
+    if category[0].isalnum() is False:
+        category = 'tag-' + category[1:]
     plt.savefig('../figs/bar/' + category + '-bar-' + str(date.today()) + '.png')
 
     # Display figure on the screen
@@ -309,6 +302,9 @@ def create_cloud(tf_dict, tfidf_dict, title, mapImage):
     ax[1].axis("off")
 
     # Save figure as an image
+    # Save figure as an image
+    if title[0].isalnum() is False:
+        title = 'tag-' + title[1:]
     plt.savefig('../figs/cloud/' + title + '-cloud-' + str(date.today()) + '.png')
 
     # Display figure on the screen
