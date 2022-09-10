@@ -243,6 +243,9 @@ tanya
 taylor
 thing
 things
+think
+thinking
+thinksß
 time
 today
 told
