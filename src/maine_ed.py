@@ -1,5 +1,5 @@
 '''
-Gungyeom (James) Kim & Daryle Lamoureux 
+Gungyeom (James) Kim & Daryle Lamoureux
 DS5110 Summer 2022
 Final Project
 
@@ -22,10 +22,11 @@ import matplotlib.pyplot as plt
 from wordcloud import WordCloud
 import numpy as np
 from PIL import Image
-nltk.download('wordnet')
-nltk.download('stopwords')
-nltk.download('omw-1.4')
 load_dotenv()
+# Un-comment the bellow nltk modules if you have not previously loaded them
+#nltk.download('wordnet')
+#nltk.download('stopwords')
+#nltk.download('omw-1.4')
 
 def add_stopwords():
     '''
@@ -72,6 +73,10 @@ def make_call(content, params=None):
         resp = requests.get(url, headers=headers, params=params)
     else:
         resp = requests.get(url, headers=headers)
+
+    if str(resp.status_code).startswith('5'):
+        print('ERROR: 500 Server Error - Try again later')
+        exit(0)
 
     # GET call as JSON
     resp_json = resp.json()
@@ -210,7 +215,7 @@ def preprocess(line):
     # Add each word/token to the word list
     line = line.split()
     for l in line:
-        if len(l) > 0 and (l.isnumeric() == False) and l.lower() not in stops:
+        if len(l) > 0 and (l.isnumeric() is False) and l.lower() not in stops:
             word_list.append(wnl.lemmatize(l).lower())
 
     return word_list
@@ -226,7 +231,7 @@ def create_dataframe(data, columns):
         df: Pandas dataframe with corresponding column headers
     '''
     df = pd.DataFrame(data, columns=columns)
-    
+
     return df
 
 def create_bar(tf, tf_feature_names, tfidf, tfidf_feature_names, category):
@@ -240,25 +245,31 @@ def create_bar(tf, tf_feature_names, tfidf, tfidf_feature_names, category):
         category: the category to be plotted
     '''
     # Sort tfidf from large to small (default sort is increasing)
-    tf_sorted_indices = np.argsort(-tf) # these are the indices of the sort
-    sorted_tf = [tf[j] for j in tf_sorted_indices] # this is the sorted array
-    tf_sorted_features = [tf_feature_names[j] for j in tf_sorted_indices] # features sorted by tfidf
+    # These are the indices of the sort
+    tf_sorted_indices = np.argsort(-tf)
+    # This is the sorted array
+    sorted_tf = [tf[j] for j in tf_sorted_indices]
+    # Features sorted by tfidf
+    tf_sorted_features = [tf_feature_names[j] for j in tf_sorted_indices]
 
-    tfidf_sorted_indices = np.argsort(-tfidf) # these are the indices of the sort
-    sorted_tfidf = [tfidf[j] for j in tfidf_sorted_indices] # this is the sorted array
-    tfidf_sorted_features = [tfidf_feature_names[j] for j in tfidf_sorted_indices] # features sorted by tfidf
+    # These are the indices of the sort
+    tfidf_sorted_indices = np.argsort(-tfidf)
+    # This is the sorted array
+    sorted_tfidf = [tfidf[j] for j in tfidf_sorted_indices]
+    # Features sorted by tfidf
+    tfidf_sorted_features = [tfidf_feature_names[j] for j in tfidf_sorted_indices]
 
     fig, ax = plt.subplots(1,2,figsize=(24,5))
 
     # Currently displays 25 words. Change [:25] to the desired value for >25 or <25
-    ax[0].bar(tf_sorted_features[:25], sorted_tf[:25], 
+    ax[0].bar(tf_sorted_features[:25], sorted_tf[:25],
             width=1, alpha=.5, edgecolor='black')
     ax[0].set_title('Most Used (TF) Words in ' + category.title())
     ax[0].set_xticks(tf_sorted_features[:25])
     ax[0].set_xticklabels(tf_sorted_features[:25],rotation=65)
 
     # Currently displays 25 words. Change [:25] to the desired value for >25 or <25
-    ax[1].bar(tfidf_sorted_features[:25], sorted_tfidf[:25], 
+    ax[1].bar(tfidf_sorted_features[:25], sorted_tfidf[:25],
             width=1, alpha=.5, edgecolor='black')
     ax[1].set_title('Least Used (TF-IDF) Words in ' + category.title())
     ax[1].set_xticks(tfidf_sorted_features[:25])
@@ -288,10 +299,10 @@ def create_cloud(tf_dict, tfidf_dict, title, mapImage):
     img_mask[img_mask.sum(axis=2) == 0] = 255
 
     # Create cloud
-    tf_cloud = WordCloud(max_words=100, mask=img_mask, contour_width=3, contour_color='firebrick', \
-        background_color='white').generate_from_frequencies(tf_dict)
-    tfidf_cloud = WordCloud(max_words=100, mask=img_mask, contour_width=3, contour_color='firebrick', \
-        background_color="white").generate_from_frequencies(tfidf_dict)
+    tf_cloud = WordCloud(max_words=100, mask=img_mask, contour_width=3, \
+        contour_color='firebrick', background_color='white').generate_from_frequencies(tf_dict)
+    tfidf_cloud = WordCloud(max_words=100, mask=img_mask, contour_width=3, \
+        contour_color='firebrick', background_color="white").generate_from_frequencies(tfidf_dict)
 
     # Plot the visualization
     fig, ax = plt.subplots(1,2,figsize=(24,5))
@@ -349,7 +360,7 @@ def create_plot(df, category, style):
     # Get all the tags
     all_tags = df['tags'].tolist()
     tags = sorted(list(set([x for tag in all_tags for x in tag])))
-    
+
     # Plot state data
     if category == 'maine':
         df['county'].replace(counties, 'maine')
@@ -377,13 +388,13 @@ def create_plot(df, category, style):
                     create_bar(tf, tf_features, tfidf, tfidf_features, county)
                 else:
                     return 'Error: Available choices only: <cloud | bar>'
-                
-                message = 'success'   
+
+                message = 'success'
 
     # Plot the counties data
     if category == 'counties':
         df = df.groupby('county').agg({'sentence': lambda x: ' '.join(x)}).reset_index()
-        
+
         # Create a visualization for each county
         for county in counties:
             if county == 'maine':
@@ -412,11 +423,11 @@ def create_plot(df, category, style):
                     return 'Error: Available choices only: <cloud | bar>'
 
             message = 'success'
-    
+
     # Plot the groups data
     if category == 'groups':
         df = df.groupby('group').agg({'sentence': lambda x: ' '.join(x)}).reset_index()
-        
+
         # Create a visualization for each county
         for group in groups:
             # Count vectorizer
@@ -442,7 +453,7 @@ def create_plot(df, category, style):
                 return 'Error: Available choices only: <cloud | bar>'
 
         message = 'success'
-    
+
     # Plot the tags data
     if category == 'tags':
         # Create a visualization for each county
@@ -474,7 +485,7 @@ def create_plot(df, category, style):
                 return 'Error: Available choices only: <cloud | bar>'
 
         message = 'success'
-    
+
     return message
 
 def main(sys_argv):
@@ -492,21 +503,22 @@ def main(sys_argv):
     df = create_dataframe(all_conversations, columns)
 
     # Enable CLI commands to get data
-    if (len(sys_argv) == 1):
-            dfgb = df.groupby(['county'])
-            df1 = dfgb.agg({'title': pd.Series.nunique})
-            df2 = dfgb.agg(lambda x: x.drop_duplicates('title', keep='first').participant_count.sum())
-            df = pd.concat([df1, df2['participant_count']],1)
-            
-            # testing
-            print("""\n############################################
-                # THE NUMBER OF CONVERSATIONS HAPPENED AND #
-                # THE NUMBER OF PARTICIPANT INVOLVED TOTAL #
-                # WITHIN EACH COUNTY                       #
-                ############################################""")
-            # Testing
-            #print(df)
-    elif (len(sys_argv) <= 2):
+    if len(sys_argv) == 1:
+        dfgb = df.groupby(['county'])
+        df1 = dfgb.agg({'title': pd.Series.nunique})
+        df2 = dfgb.agg(lambda x: x.drop_duplicates('title', keep='first').participant_count.sum())
+        df = pd.concat([df1, df2['participant_count']],1)
+
+        print(df)
+        # testing
+        #print("""\n############################################
+            # THE NUMBER OF CONVERSATIONS HAPPENED AND #
+            # THE NUMBER OF PARTICIPANT INVOLVED TOTAL #
+            # WITHIN EACH COUNTY                       #
+            ############################################""")
+
+        result = 'success'
+    elif len(sys_argv) <= 2:
         # Print the help message
         print("""
         Generates bar chart or word clouds of important words within categories using data by Ed Maine Forums from LVN API\n
@@ -520,7 +532,9 @@ def main(sys_argv):
         : groups: plot <bar | cloud> for every group that took part in the conversations
         : tags: plot <bar | cloud> for every tag that has been added to responses in the conversations
         """)
-    elif(len(sys_argv) >= 2):
+
+        result = 'success'
+    elif len(sys_argv) >= 2:
         # Processing dataframe according to sys_argv[1]
         result = create_plot(df, sys_argv[1], sys_argv[2])
     else:
