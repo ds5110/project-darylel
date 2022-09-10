@@ -33,7 +33,9 @@ apart
 ari
 aroostook
 around
+away
 b
+back
 becky
 ben
 beth
@@ -192,6 +194,7 @@ people
 perhaps
 perry
 pete
+piece
 pop
 pops
 pre
