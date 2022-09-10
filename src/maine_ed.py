@@ -259,6 +259,28 @@ def create_bar(tf, tf_feature_names, tfidf, tfidf_feature_names, category):
     # Features sorted by tfidf
     tfidf_sorted_features = [tfidf_feature_names[j] for j in tfidf_sorted_indices]
 
+    plt.figure()
+    plt.bar(tf_sorted_features[:25], sorted_tf[:25], width=1, alpha=.5, edgecolor='black')
+    plt.title('Most Used Words in ' + category.title())
+    plt.xticks(tf_sorted_features[:25], rotation=65)
+    plt.tight_layout()
+    if category.isalnum() is False:
+        category = 'tag-' + category[1:]
+    plt.savefig('../figs/bar/' + category + '-most-bar.png')
+    plt.show()
+
+    plt.figure()
+    plt.bar(tfidf_sorted_features[:25], sorted_tfidf[:25], width=1, alpha=.5, edgecolor='black')
+    plt.title('Least Used Words in ' + category.title())
+    plt.xticks(tfidf_sorted_features[:25], rotation=65)
+    plt.tight_layout()
+    if category.isalnum() is False:
+        category = 'tag-' + category[1:]
+    plt.savefig('../figs/bar/' + category + '-least-bar.png')
+    plt.show()
+
+    # The commented out code below creates a side by side image of TF and TF-IDF
+    '''
     fig, ax = plt.subplots(1,2,figsize=(24,5))
 
     # Currently displays 25 words. Change [:25] to the desired value for >25 or <25
@@ -282,6 +304,7 @@ def create_bar(tf, tf_feature_names, tfidf, tfidf_feature_names, category):
 
     # Display figure on the screen
     plt.show()
+    '''
 
 def create_cloud(tf_dict, tfidf_dict, title, mapImage):
     '''
@@ -305,6 +328,28 @@ def create_cloud(tf_dict, tfidf_dict, title, mapImage):
         contour_color='firebrick', background_color="white").generate_from_frequencies(tfidf_dict)
 
     # Plot the visualization
+    plt.figure()
+    plt.imshow(tf_cloud, interpolation='bilinear')
+    plt.title('Most Used Words in ' + title.title())
+    plt.axis('off')
+    if title.isalnum() is False:
+        title = 'tag-' + title[1:]
+    plt.tight_layout()
+    plt.savefig('../figs/cloud/' + title + '-most-cloud.png')
+    plt.show()
+
+    plt.figure()
+    plt.imshow(tfidf_cloud, interpolation='bilinear')
+    plt.title('Least Used Words in ' + title.title())
+    plt.axis('off')
+    if title.isalnum() is False:
+        title = 'tag-' + title[1:]
+    plt.tight_layout()
+    plt.savefig('../figs/cloud/' + title + '-least-cloud.png')
+    plt.show()
+
+    # The code commented out below creates a side by side image of TF and TF-IDF
+    '''
     fig, ax = plt.subplots(1,2,figsize=(24,5))
     ax[0].imshow(tf_cloud, interpolation='bilinear')
     ax[0].set_title('Most Used (TF) Words in ' + title.title())
@@ -322,6 +367,7 @@ def create_cloud(tf_dict, tfidf_dict, title, mapImage):
 
     # Display figure on the screen
     plt.show()
+    '''
 
 def create_plot(df, category, style):
     '''
